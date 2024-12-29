@@ -1,0 +1,142 @@
+<html>
+    <head>
+        <meta charset="windows-1252">
+        <meta http-equiv=”Content-Type” content=”text/html; charset=utf-8″>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+        <style>
+            body{
+                width: 			700px;
+                font:			normal normal normal 14px 'open sans', sans-serif;
+            }
+
+            h1 {
+                font: 			normal normal normal 22px 'open sans', sans-serif;
+                color: 			rgb(0, 136, 203);
+                padding-top: 	3px;
+                padding-bottom:	3px;
+            }
+
+            h2 {
+                font: 			normal normal normal 14px 'open sans', sans-serif;
+            }
+
+            table{
+                font:			normal normal normal 14px 'open sans', sans-serif;
+                text-align: 	left
+                    border-width: 	0px;
+
+            }
+
+            thead{
+                font:			normal normal normal 14px 'open sans', sans-serif;
+                background:		Gray;
+                color:			White;
+                border-width: 	1px;
+            }
+            
+            .center {
+              display: block;
+              margin-left: auto;
+              margin-right: auto;
+              width: 50%;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div style="margin-left: 5%;width:700px;font:normal normal normal 14px 'open sans', sans-serif;">
+            <!-- Logotipo --> 
+            <a href="https://alfasrv.com.br/">
+            <img class="center" height="100" width="250" src="https://alfasrv.com.br/wp-content/themes/alfa2020/assets/images/logo-alfa-srv.png"> 
+            </a>
+            
+            <h1 style="font:normal normal normal 22px 'open sans', sans-serif; color:rgb(0, 136, 203);padding-top: 	3px;padding-bottom:	3px;">
+                <b>%cTexto%<b/>
+            </h1>
+            <!-- Logotipo --> 
+            <input type="hidden" name="C1_USER" value="%cContato%"><!-- escondido porque não e usado e esta no fonte padrao da totvs --> 
+            
+
+                    <!-- Nome Cliente --> 
+                    <div class="grid" style="border-top:solid rgb(0, 136, 203) 2px; padding-top:10px;padding-bottom:5px;margin-top:10px;">
+                        %cCliente%
+                    </div>
+					
+                    <!-- Itens do Pedido -->
+                    <h2 style="text-align='center'; font:normal normal normal 14px 'open sans', sans-serif;"><b>Esta &eacute; uma mensagem autom&aacute;tico enviado por ALFA SISTEMAS DE GEST&Atilde;O LTDA . <h5>Caso j&aacute; tenha realizado o pagamento, por favor desconsidere esta mensagem.</h5></b><h2>
+                    <div class="table-responsive">
+                        <table  border="0"  width='100%' border="0px">
+                            <thead style="text-align: center">
+                              <tr>
+                                <th>Valor &aacute; Pagar</th>
+                                <th>Vencimento</th>
+                                <th>Nota Fiscal</th>
+                              </tr>
+                            </thead>
+                            <tbody style="text-align: center">
+                              <tr>
+                                <td>%nValor%</td>
+                                <td>%cDtVenc%</td>
+                                <td>%cNF%</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                    </div>
+                    <!--
+                    <table style="font:normal normal normal 14px 'open sans', sans-serif;text-align:leftborder-width:0px;align:right">
+                            <thead style="font:normal normal normal 14px 'open sans', sans-serif;background:Gray;color:White;text-align:left;border-width:0px;">
+                                <tr>
+                                    <td style="">Total das Mercadorias</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="">%nTotMercad%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                         <table style="font:normal normal normal 14px 'open sans', sans-serif;text-align:leftborder-width:0px;align:right">
+                            <thead style="font:normal normal normal 14px 'open sans', sans-serif;background:Gray;color:White;text-align:left;border-width:0px;">
+                                <tr>
+                                    <td style="">Total dos Impostos  </td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="">%nTotImpos%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        -->
+                    <h2 Style="border-top:solid rgb(0, 136, 203) 2px; padding-top:10px;padding-bottom:5px;margin-top:10px;"></h2> 
+                        
+                        
+                        <h2 style="font:normal normal normal 14px 'open sans', sans-serif;"><b> Referente &aacute;: </b>%cRefere%<h2>
+                        <h2 style="font:normal normal normal 14px 'open sans', sans-serif;"><b> Link da NF: <a href="%cLinkNF%">Clique no Link para acessar a Nota Fiscal</a> </b><h2>
+                        
+                        <h2 style="font:normal normal normal 14px 'open sans', sans-serif;"><b>Se preferir efetuar o pagamento via dep&oacute;sito ou transfer&ecirc;ncia banc&aacute;ria, segue nossa conta banc&aacute;ria:</b><h2>
+                        <p>Banco: <b>%cBanco%</b><br>
+                        Agencia: <b>%cAgencia%</b><br>
+                        Conta: <b>%cConta%</b><br>
+                        Favorecido: <b>%cFavore%</b><br>
+                        CNPJ: <b>%cCNPJ%</b></p>
+                        
+                        
+                        
+                        <br><br>
+                        <p>
+                            Equipe Administrativo <br>
+                            adm@alfaerp.com.br<br>
+                            [11] 3588.9997<br>
+                            <a href="https://alfasrv.com.br">https://alfasrv.com.br | Consultoria TOTVS</a> <br>
+                            <a href="https://alfaerp.com.br">https://alfaerp.com.br | SAP Business One</a> <br>
+                        </p>
+                        <br>
+                    </div>
+                    
+                    <script async type="text/javascript" src="/_Incapsula_Resource?SWJIYLWA=719d34d31c8e3a6e6fffd425f7e032f3&ns=1&cb=1566882063"></script>
+                    </body>
+                    </html>
