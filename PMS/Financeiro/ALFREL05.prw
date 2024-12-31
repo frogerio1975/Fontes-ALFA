@@ -4,8 +4,13 @@
 
 // DEFINICAO DE TAMANHO DAS LINHAS DO RELATORIO
 #DEFINE HeightRowTitulo "38.25"
+#DEFINE HRSubTitulo "80.00"
 
-#DEFINE HeightRowCab1 	"24.00"
+
+#DEFINE HeightRowCab1 	"44.00"  //Altura da coluna do texto explicativo para Fluxo Mensal
+#DEFINE HeightRowCab2 	"34.00"  //Altura da coluna do texto explicativo para Fluxo Semanal
+#DEFINE HeightRowCab3 	"24.00"  //Altura da coluna do texto explicativo para Fluxo Diário
+
 #DEFINE HeightRowItem1 	"11.25"
 #DEFINE HeightRowTotal  "12.00"
 
@@ -66,18 +71,21 @@ Local oXML
 Private nFolder  := 1 // Pasta onde o relatorio sera gerado
 
 // Parametros
-Private aEmpFat  := { "1=SYMM", "2=ERP", "3=GNP", "4=ALFA","5=Campinas","6=Colaboração" }
+Private aEmpFat  := { "1=ALFA", "2=MOOVE", "3=GNP", "4=ALFA","5=Campinas","6=Colaboração","0-TODAS" }
 Private aTipoRel := { "1=Diario", "2=Semanal", "3=Mensal" }
 Private cEmpFat  := "1"
-Private cTipoRel := "1"
-Private dPerIni  := CriaVar("E1_EMISSAO",.F.)
-Private dPerFim  := CriaVar("E1_EMISSAO",.F.)
+Private cTipoRel := "3"
+Private dPerIni  := FirstDay(dDataBase)//CriaVar("E1_EMISSAO",.F.)
+Private dPerFim  := LastDay(dDatabase)//CriaVar("E1_EMISSAO",.F.)
 Private aPeriodo := {}
+Private aModelo  := { "1=Competencia", "2=Caixa","3-Combinado"}
+Private cModelo  := "1"
 
 AADD( aBoxParam, {2,"Empresa"         , cEmpFat   , aEmpFat , 50, ".F.", .T.} )
 AADD( aBoxParam, {2,"Tipo Relatório"  , cTipoRel  , aTipoRel, 50, ".F.", .T.} )
 AADD( aBoxParam, {1,"Período DE"      , dPerIni   , "@!", "", "", "", 50, .T.} )
 AADD( aBoxParam, {1,"Período ATE"     , dPerFim   , "@!", "", "", "", 50, .T.} )
+AADD( aBoxParam, {2,"Modelo"          , cModelo   , aModelo, 80, ".F.", .T.} )
 
 If ParamBox(aBoxParam,"Parametros - Fluxo de Caixa",@aRetParam,,,,,,,,.F.)
 
@@ -85,6 +93,7 @@ If ParamBox(aBoxParam,"Parametros - Fluxo de Caixa",@aRetParam,,,,,,,,.F.)
     cTipoRel := aRetParam[2]
     dPerIni  := aRetParam[3]
     dPerFim  := aRetParam[4]
+    cModelo  := aRetParam[5]
 
     RetPeriodo(cTipoRel, dPerIni, dPerFim, @aPeriodo)
 
@@ -155,6 +164,7 @@ oXml:AddRow(, {"Empresa"         , aEmpFat[Val(cEmpFat)]     }, aStl)
 oXml:AddRow(, {"Tipo Relatório"  , aTipoRel[Val(cTipoRel)]   }, aStl)
 oXml:AddRow(, {"Período DE"      , DToC(dPerIni)        }, aStl)
 oXml:AddRow(, {"Período ATE"     , DToC(dPerFim)        }, aStl)
+oXml:AddRow(, {"Modelo"          , aModelo[Val(cModelo)]   }, aStl)
 
 oXml:SkipLine(1)
 
@@ -178,18 +188,28 @@ Local aStl		:= {}
 Local nTotLin   := 0
 Local cPictNat  := PesqPict("SED", "ED_CODIGO")
 Local nX        := 0
+Local nAltLin   := 0
+Local nPeriodos := 0
+Local nTotal    := 0
 
 //variaveis de estilo
 Private oStlTit
 Private oStlCab1
 
-cTMP1 := LoadDados(aPeriodo)
+If (cModelo == "1") //Regime de Competencia
+    cTMP1 := CompetenciaLoadDados(aPeriodo)
+ElseIf(cModelo == "2") //Regime de Caixa
+    cTMP1 := CaixaLoadDados(aPeriodo) 
+Else //Combinado (Caixa+Competencia)
+    cTMP1 := LoadDados(aPeriodo) 
+EndIf
+
 
 /*Style Titulo*/
 oStlTit := CellStyle():New("StlTit")
 oStlTit:setFont("Arial", 12, "#4A4A4A", .T., .F., .F., .F.)
-oStlTit:setInterior("#FFFFFF")
-oStlTit:setHAlign("LEFT")
+oStlTit:setInterior("#FFA500")
+oStlTit:setHAlign("CENTER")
 oStlTit:setVAlign("CENTER")
 oStlTit:setWrapText(.T.)
 
@@ -201,9 +221,9 @@ oStlTit2:setVAlign("CENTER")
 oStlTit2:setNumberFormat("Medium Date")
 
 oStlTit3 := CellStyle():New("StlTit3")
-oStlTit3:setFont("Arial", 8, "#4A4A4A", .T., .F., .F., .F.)
-oStlTit3:setInterior("#FFFF00")
-oStlTit3:setHAlign("CENTER")
+oStlTit3:setFont("Arial", 8, "#4A4A4A", .T., .T., .F., .F.)
+oStlTit3:setInterior("#FFA500")
+oStlTit3:setHAlign("LEFT")
 oStlTit3:setVAlign("CENTER")
 oStlTit3:setWrapText(.T.)
 
@@ -362,65 +382,52 @@ oXml:setFolderName("Fluxo de Caixa")
 oXml:showGridLine(.F.)
 oXml:SetZoom(100)
 
-aAdd( aColSize, "49.5" ) // Código
+aAdd( aColSize, "60" )  // Código
 aAdd( aColSize, "200" ) // Descrição
-aAdd( aColSize, "0" ) // Tipo
+aAdd( aColSize, "0" )   // "Espaco em Branco"
 
-For nX := 1 To Len(aPeriodo)
+nPeriodos:= Len(aPeriodo)
+For nX := 1 To nPeriodos
     aAdd( aColSize, "60" )
 Next nX
 
 // Ajusta o tamanho das colunas da planilha.
 oXML:SetColSize(aColSize)
 
+//Ajusta o cabecalho de acordo com a quantidade de colunas
 aCabTit := {}
 
-aAdd( aCabTit, "Relatório de Fluxo de Caixa" ) // Código
+cTexto:=  "Relatório de Fluxo de Caixa" + " ( por " + aModelo[Val(cModelo)] + " )" 
+aAdd( aCabTit, cTexto) // Código
 aAdd( aCabTit, "" ) // Descrição
-aAdd( aCabTit, "" ) // Tipo
+aAdd( aCabTit, "" ) // Espaco
 
 aTitStl := {}
 
-aAdd( aTitStl, oStlTit ) // Data emissão
-aAdd( aTitStl, oStlTit ) // Cliente
-aAdd( aTitStl, oStlTit ) // Tipo
-
-nHistCount := 0
-nFutCount  := 0
-For nX := 1 To Len(aPeriodo)
-    cPerIni := aPeriodo[nX][1][1]
-    cPerFim := aPeriodo[nX][1][2]
-    lHistorico := SToD(cPerFim) < dDataBase
-    If lHistorico
-        aAdd( aCabTit, "Período histórico: considera o efetivo recebimento e o efetivo pagamento" )
-        aAdd( aTitStl, oStlCab5 )
-
-        nHistCount++
-    Else
-        cTexto := "Período futuro: considera a data de previsão de recebimentos e previsão de "
-        cTexto += "pagamentos, ou seja, as datas de vencimento. Títulos vencidos precisa considerar a "
-        cTexto += "data de vencimento renegociada. "
-
-        aAdd( aCabTit, cTexto )
-        aAdd( aTitStl, oStlCab6 )
-
-        nFutCount++
-    EndIf
-Next nX
+aAdd( aTitStl, oStlTit ) // Código
+aAdd( aTitStl, oStlTit ) // Descricao
+aAdd( aTitStl, oStlTit ) // Espaco
 
 oXML:AddRow( HeightRowTitulo, aCabTit, aTitStl)
-
 //oXml:SetMerge(nRow, nCol, nRowSize, nColSize)
-oXml:SetMerge( , , , 2)
+oXml:SetMerge( , , , 3+nPeriodos)
 
-If nHistCount > 1
-    oXml:SetMerge( , 4, , (nHistCount-1))
-EndIf
+//Adiciona o subtitulo com a explicacao
+cTexto     := "O Fluxo de Caixa por Competência é uma forma de apurar e controlar o fluxo financeiro de uma empresa com base no regime de competência, ou seja, registrando receitas e despesas no momento em que elas são geradas, independentemente de quando o dinheiro realmente entra ou sai do caixa."
+aCabTit[1] := cTexto
+aTitStl[1] := oStlTit3
 
-If nFutCount > 1
-    oXml:SetMerge( , 4+nHistCount, , (nFutCount-1))
-EndIf
+If (nPeriodos == 1)
+    nAltLin:= HeightRowCab1
+ElseIf (nPeriodos <= 4)
+    nAltLin:= HeightRowCab2
+Else
+    nAltLin:= HeightRowCab3
+Endif
 
+
+oXML:AddRow( nAltLin, aCabTit, aTitStl)
+oXml:SetMerge( , , , 3+nPeriodos)
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 aCabDad := {}
@@ -436,7 +443,7 @@ aAdd( aCabStl, oStlCab1 ) // Código
 aAdd( aCabStl, oStlCab1 ) // Descrição
 aAdd( aCabStl, oStlCab1 ) // Tipo
 
-For nX := 1 To Len(aPeriodo)
+For nX := 1 To nPeriodos
     cPerIni := aPeriodo[nX][1][1]
     cPerFim := aPeriodo[nX][1][2]
     lHistorico := SToD(cPerFim) < dDataBase
@@ -445,9 +452,12 @@ For nX := 1 To Len(aPeriodo)
         aAdd( aCabStl, oStlCab1 )
     Else
         aAdd( aCabDad, aPeriodo[nX][2] )
-        aAdd( aCabStl, oStlCab7 )
+        aAdd( aCabStl, oStlCab1 )
     EndIf
 Next nX
+
+aAdd( aCabDad, "TOTAL" ) // Tipo
+aAdd( aCabStl, oStlCab7 ) // Total da Linha
 
 oXML:AddRow(HeightRowCab1, aCabDad, aCabStl)
 
@@ -472,11 +482,11 @@ While (cTMP1)->(!EOF())
             aAdd( aStl, oSN03Txt ) // Código
             aAdd( aStl, oSN03Txt ) // Descrição
             aAdd( aStl, oSN03Txt ) // Tipo
-        CASE Len(AllTrim((cTMP1)->ED_CODIGO)) == 5
+        CASE Len(AllTrim((cTMP1)->ED_CODIGO)) == 4
             aAdd( aStl, oSN03Txt ) // Código
             aAdd( aStl, oSN05Txt ) // Descrição
             aAdd( aStl, oSN03Txt ) // Tipo
-        CASE Len(AllTrim((cTMP1)->ED_CODIGO)) == 7
+        CASE Len(AllTrim((cTMP1)->ED_CODIGO)) == 6
             aAdd( aStl, oSN04Txt ) // Código
             aAdd( aStl, oSN06Txt ) // Descrição
             aAdd( aStl, oSN04Txt ) // Tipo
@@ -488,16 +498,21 @@ While (cTMP1)->(!EOF())
     
         
     If (cTMP1)->FILHOS > 0
-        For nX := 1 To Len(aPeriodo)
+        For nX := 1 To Len(aPeriodo)+1
             aAdd( aRowDad, "=SUBTOTAL(9,R[1]C:R["+cValToChar((cTMP1)->FILHOS)+"]C)" )
             aAdd( aStl, oSN05Num )
         Next nX
     Else
+        nTotal:= 0
         For nX := 1 To Len(aPeriodo)
             cCampo := "CPO_" + StrZero(nX,4)
             aAdd( aRowDad, &(cTMP1+"->"+cCampo) )
             aAdd( aStl, oSN06Num )
+            nTotal+= &(cTMP1+"->"+cCampo)
         Next nX
+
+        aAdd( aRowDad, nTotal )
+        aAdd( aStl, oSN05Num )
     EndIf
 
 	oXML:AddRow( HeightRowItem1, aRowDad, aStl )
@@ -657,10 +672,7 @@ Next nX
 cQuery += " FROM ( "+ CRLF
 
 cQuery += " SELECT "+ CRLF
-//cQuery += " 	SED.ED_CODIGO "+ CRLF
-cQuery += " CASE WHEN SED.ED_CODIGO  = '10100' THEN '010100' "+CRLF
-cQuery += "	WHEN SED.ED_CODIGO  = '10101' THEN '010101' "+CRLF
-cQuery += " ELSE ED_CODIGO END ED_CODIGO "+CRLF
+cQuery += " 	 SED.ED_CODIGO "+ CRLF
 cQuery += " 	,SED.ED_DESCRIC "+ CRLF
 cQuery += " 	,SED.ED_COND "+ CRLF
 cQuery += " 	,(  SELECT COUNT(1) "+ CRLF
@@ -687,10 +699,7 @@ cQuery += " 	AND SED.D_E_L_E_T_ = ' ' "+ CRLF
 cQuery += " UNION ALL "+ CRLF
 
 cQuery += " SELECT "+ CRLF
-//cQuery += " 	SED.ED_CODIGO "+ CRLF
-cQuery += " CASE WHEN SED.ED_CODIGO  = '10100' THEN '010100' "+CRLF
-cQuery += "	WHEN SED.ED_CODIGO  = '10101' THEN '010101' "+CRLF
-cQuery += " ELSE ED_CODIGO END ED_CODIGO "+CRLF
+cQuery += " 	 SED.ED_CODIGO "+ CRLF
 cQuery += " 	,SED.ED_DESCRIC "+ CRLF
 cQuery += " 	,SED.ED_COND "+ CRLF
 cQuery += " 	,0 AS FILHOS "+ CRLF
@@ -731,8 +740,7 @@ cQuery += " WHERE "+ CRLF
 cQuery += " 	SE1.E1_FILIAL = '"+xFilial("SE1")+"' "+ CRLF
 cQuery += " 	AND SE1.E1_EMPFAT = '"+cEmpFat+"' "+ CRLF
 cQuery += " 	AND SE1.E1_TIPO = 'DP' "+ CRLF
-// cQuery += " 	AND SE1.E1_BAIXA <> ' ' "+ CRLF
-//cQuery += " 	AND SE1.E1_FATURA = ' ' "+ CRLF
+cQuery += " 	AND SE1.E1_BAIXA <> ' ' "+ CRLF
 cQuery += " 	AND (SE1.E1_FATURA = ' ' OR E1_FATURA = 'NOTFAT')"+ CRLF
 cQuery += " 	AND SE1.D_E_L_E_T_ = ' ' "+ CRLF
 
@@ -744,10 +752,7 @@ cQuery += " 	,SED.ED_COND "+ CRLF
 cQuery += " UNION ALL "+ CRLF
 
 cQuery += " SELECT "+ CRLF
-//cQuery += " 	SED.ED_CODIGO "+ CRLF
-cQuery += " CASE WHEN SED.ED_CODIGO  = '10100' THEN '010100' "+CRLF
-cQuery += "	WHEN SED.ED_CODIGO  = '10101' THEN '010101' "+CRLF
-cQuery += " ELSE ED_CODIGO END ED_CODIGO "+CRLF
+cQuery += " 	 SED.ED_CODIGO "+ CRLF
 cQuery += " 	,SED.ED_DESCRIC "+ CRLF
 cQuery += " 	,SED.ED_COND "+ CRLF
 cQuery += " 	,0 AS FILHOS "+ CRLF
@@ -777,8 +782,7 @@ cQuery += " 	SE1.E1_FILIAL = '"+xFilial("SE1")+"' "+ CRLF
 cQuery += " 	AND SE1.E1_EMPFAT = '"+cEmpFat+"' "+ CRLF
 cQuery += " 	AND SE1.E1_TIPO = 'DP' "+ CRLF
 cQuery += " 	AND SE1.E1_VENCREA BETWEEN '"+aPeriodo[1][1][1]+"' AND '"+ATail(aPeriodo)[1][2]+"' "+ CRLF
-// cQuery += " 	AND SE1.E1_BAIXA = ' ' "+ CRLF
-//cQuery += " 	AND SE1.E1_FATURA = ' ' "+ CRLF
+cQuery += " 	AND SE1.E1_BAIXA = ' ' "+ CRLF
 cQuery += " 	AND (SE1.E1_FATURA = ' ' OR E1_FATURA = 'NOTFAT')"+ CRLF
 cQuery += " 	AND SE1.D_E_L_E_T_ = ' ' "+ CRLF
 
@@ -790,10 +794,7 @@ cQuery += " 	,SED.ED_COND "+ CRLF
 cQuery += " UNION ALL "+ CRLF
 
 cQuery += " SELECT "+ CRLF
-//cQuery += " 	SED.ED_CODIGO "+ CRLF
-cQuery += " CASE WHEN SED.ED_CODIGO  = '10100' THEN '010100' "+CRLF
-cQuery += "	WHEN SED.ED_CODIGO  = '10101' THEN '010101' "+CRLF
-cQuery += " ELSE ED_CODIGO END ED_CODIGO "+CRLF
+cQuery += " 	 SED.ED_CODIGO "+ CRLF
 cQuery += " 	,SED.ED_DESCRIC "+ CRLF
 cQuery += " 	,SED.ED_COND "+ CRLF
 cQuery += " 	,0 AS FILHOS "+ CRLF
@@ -834,7 +835,7 @@ cQuery += " WHERE "+ CRLF
 cQuery += " 	SE2.E2_FILIAL = '"+xFilial("SE2")+"' "+ CRLF
 cQuery += " 	AND SE2.E2_EMPFAT = '"+cEmpFat+"' "+ CRLF
 cQuery += " 	AND SE2.E2_TIPO = 'DP' "+ CRLF
-// cQuery += " 	AND SE2.E2_BAIXA <> ' ' "+ CRLF
+cQuery += " 	AND SE2.E2_BAIXA <> ' ' "+ CRLF
 cQuery += " 	AND SE2.D_E_L_E_T_ = ' ' "+ CRLF
 
 cQuery += " GROUP BY "+ CRLF
@@ -845,10 +846,7 @@ cQuery += " 	,SED.ED_COND "+ CRLF
 cQuery += " UNION ALL "+ CRLF
 
 cQuery += " SELECT "+ CRLF
-//cQuery += " 	SED.ED_CODIGO "+ CRLF
-cQuery += " CASE WHEN SED.ED_CODIGO  = '10100' THEN '010100' "+CRLF
-cQuery += "	WHEN SED.ED_CODIGO  = '10101' THEN '010101' "+CRLF
-cQuery += " ELSE ED_CODIGO END ED_CODIGO "+CRLF
+cQuery += " 	 SED.ED_CODIGO "+ CRLF
 cQuery += " 	,SED.ED_DESCRIC "+ CRLF
 cQuery += " 	,SED.ED_COND "+ CRLF
 cQuery += " 	,0 AS FILHOS "+ CRLF
@@ -878,7 +876,7 @@ cQuery += " 	SE2.E2_FILIAL = '"+xFilial("SE2")+"' "+ CRLF
 cQuery += " 	AND SE2.E2_EMPFAT = '"+cEmpFat+"' "+ CRLF
 cQuery += " 	AND SE2.E2_TIPO = 'DP' "+ CRLF
 cQuery += " 	AND SE2.E2_VENCREA BETWEEN '"+aPeriodo[1][1][1]+"' AND '"+ATail(aPeriodo)[1][2]+"' "+ CRLF
-// cQuery += " 	AND SE2.E2_BAIXA = ' ' "+ CRLF
+cQuery += " 	AND SE2.E2_BAIXA = ' ' "+ CRLF
 cQuery += " 	AND SE2.D_E_L_E_T_ = ' ' "+ CRLF
 
 cQuery += " GROUP BY "+ CRLF
@@ -899,13 +897,325 @@ cQuery += " 	TAB.ED_CODIGO "+ CRLF
 // Salva query em disco para debug.
 If .T.//GetNewPar("SY_DEBUG", .T.)
 	MakeDir("\DEBUG\")
-	MemoWrite("\DEBUG\"+__cUserID+"_ALFREL05.SQL", cQuery)
+	MemoWrite("\DEBUG\"+__cUserID+"_ALFREL05-COMBINADO.SQL", cQuery)
 EndIf
 
 cTMP1 := MPSysOpenQuery(cQuery)
 
 Return cTMP1
 
+//-------------------------------------------------------------------
+/*/{Protheus.doc} CompetenciaLoadDados
+Rotina para carregar os dados do relatorio via query. Regime de Competencia
+
+@author  Wilson A. Silva Jr
+@since   13/06/2021
+@version 1.0
+/*/
+//-------------------------------------------------------------------
+Static Function CompetenciaLoadDados(aPeriodo)
+
+Local cTMP1    := ""
+Local cQuery   := ""
+Local nX
+
+cQuery := " SELECT "+ CRLF
+cQuery += " 	TAB.ED_CODIGO "+ CRLF
+cQuery += " 	,TAB.ED_DESCRIC "+ CRLF
+cQuery += " 	,TAB.ED_COND "+ CRLF
+cQuery += " 	,MAX(TAB.FILHOS) AS FILHOS "+ CRLF
+
+For nX := 1 To Len(aPeriodo)
+    cCampo := "CPO_" + StrZero(nX,4)
+    cQuery += " 	,SUM(TAB."+cCampo+") AS "+cCampo+" "+ CRLF
+Next nX
+
+cQuery += " FROM ( "+ CRLF
+
+cQuery += " SELECT "+ CRLF
+cQuery += " 	 SED.ED_CODIGO "+ CRLF
+cQuery += " 	,SED.ED_DESCRIC "+ CRLF
+cQuery += " 	,SED.ED_COND "+ CRLF
+cQuery += " 	,(  SELECT COUNT(1) "+ CRLF
+cQuery += " 		FROM "+RetSqlName("SED")+" TOT (NOLOCK) "+ CRLF
+cQuery += " 		WHERE "+ CRLF
+cQuery += " 			TOT.ED_FILIAL = '"+xFilial("SED")+"' "+ CRLF
+cQuery += " 			AND LEFT(TOT.ED_PAI,LEN(SED.ED_CODIGO)) = SED.ED_CODIGO "+ CRLF
+cQuery += " 			AND TOT.ED_XMOSREL = 'S' "+ CRLF
+cQuery += " 			AND TOT.D_E_L_E_T_ = ' ' "+ CRLF
+cQuery += "  		) AS FILHOS "+ CRLF
+
+For nX := 1 To Len(aPeriodo)
+    cCampo := "CPO_" + StrZero(nX,4)
+    cQuery += " 	,0 AS "+cCampo+" "+ CRLF
+Next nX
+
+cQuery += " FROM "+RetSqlName("SED")+" SED (NOLOCK) "+ CRLF
+
+cQuery += " WHERE "+ CRLF
+cQuery += " 	SED.ED_FILIAL = '"+xFilial("SED")+"' "+ CRLF
+cQuery += " 	AND SED.ED_XMOSREL = 'S' "+ CRLF
+cQuery += " 	AND SED.D_E_L_E_T_ = ' ' "+ CRLF
+
+cQuery += " UNION ALL "+ CRLF
+
+cQuery += " SELECT "+ CRLF
+cQuery += " 	 SED.ED_CODIGO "+ CRLF
+cQuery += " 	,SED.ED_DESCRIC "+ CRLF
+cQuery += " 	,SED.ED_COND "+ CRLF
+cQuery += " 	,0 AS FILHOS "+ CRLF
+
+For nX := 1 To Len(aPeriodo)
+    cCampo  := "CPO_" + StrZero(nX,4)
+    cPerIni := aPeriodo[nX][1][1]
+    cPerFim := aPeriodo[nX][1][2]
+    cQuery += " 	,SUM(CASE WHEN SE1.E1_VENCREA BETWEEN '"+cPerIni+"' AND '"+cPerFim+"' THEN (SE1.E1_VALOR - (SE1.E1_ISS + SE1.E1_PIS + SE1.E1_COFINS + SE1.E1_IRRF + SE1.E1_CSLL)) * 1 ELSE 0 END) AS "+cCampo+" "+ CRLF
+Next nX
+
+cQuery += " FROM "+RetSqlName("SE1")+" SE1 (NOLOCK) "+ CRLF
+
+cQuery += " INNER JOIN "+RetSqlName("SED")+" SED (NOLOCK) "+ CRLF
+cQuery += " 	ON SED.ED_FILIAL = '"+xFilial("SED")+"' "+ CRLF
+cQuery += " 	AND SED.ED_CODIGO = E1_NATUREZ "+ CRLF
+cQuery += " 	AND SED.ED_XMOSREL = 'S' "+ CRLF
+cQuery += " 	AND SED.D_E_L_E_T_ = ' ' "+ CRLF
+
+cQuery += " WHERE "+ CRLF
+cQuery += " 	SE1.E1_FILIAL = '"+xFilial("SE1")+"' "+ CRLF
+cQuery += " 	AND SE1.E1_EMPFAT = '"+cEmpFat+"' "+ CRLF
+cQuery += " 	AND SE1.E1_TIPO = 'DP' "+ CRLF
+cQuery += " 	AND SE1.E1_VENCREA BETWEEN '"+aPeriodo[1][1][1]+"' AND '"+ATail(aPeriodo)[1][2]+"' "+ CRLF
+cQuery += " 	AND (SE1.E1_FATURA = ' ' OR E1_FATURA = 'NOTFAT')"+ CRLF
+cQuery += " 	AND SE1.D_E_L_E_T_ = ' ' "+ CRLF
+
+cQuery += " GROUP BY "+ CRLF
+cQuery += " 	SED.ED_CODIGO "+ CRLF
+cQuery += " 	,SED.ED_DESCRIC "+ CRLF
+cQuery += " 	,SED.ED_COND "+ CRLF
+
+cQuery += " UNION ALL "+ CRLF
+
+cQuery += " SELECT "+ CRLF
+cQuery += " 	 SED.ED_CODIGO "+ CRLF
+cQuery += " 	,SED.ED_DESCRIC "+ CRLF
+cQuery += " 	,SED.ED_COND "+ CRLF
+cQuery += " 	,0 AS FILHOS "+ CRLF
+
+For nX := 1 To Len(aPeriodo)
+    cCampo  := "CPO_" + StrZero(nX,4)
+    cPerIni := aPeriodo[nX][1][1]
+    cPerFim := aPeriodo[nX][1][2]
+    cQuery += " 	,SUM(CASE WHEN SE2.E2_VENCREA BETWEEN '"+cPerIni+"' AND '"+cPerFim+"' THEN (SE2.E2_VALOR - (SE2.E2_VRETPIS + SE2.E2_VRETCOF + SE2.E2_VRETIRF + SE2.E2_VRETCSL)) * 1 ELSE 0 END * (-1)) AS "+cCampo+" "+ CRLF
+Next nX
+
+cQuery += " FROM "+RetSqlName("SE2")+" SE2 (NOLOCK) "+ CRLF
+
+cQuery += " INNER JOIN "+RetSqlName("SED")+" SED (NOLOCK) "+ CRLF
+cQuery += " 	ON SED.ED_FILIAL = '"+xFilial("SED")+"' "+ CRLF
+cQuery += " 	AND SED.ED_CODIGO = E2_NATUREZ "+ CRLF
+cQuery += " 	AND SED.ED_XMOSREL = 'S' "+ CRLF
+cQuery += " 	AND SED.D_E_L_E_T_ = ' ' "+ CRLF
+
+cQuery += " WHERE "+ CRLF
+cQuery += " 	SE2.E2_FILIAL = '"+xFilial("SE2")+"' "+ CRLF
+cQuery += " 	AND SE2.E2_EMPFAT = '"+cEmpFat+"' "+ CRLF
+cQuery += " 	AND SE2.E2_TIPO = 'DP' "+ CRLF
+cQuery += " 	AND SE2.E2_VENCREA BETWEEN '"+aPeriodo[1][1][1]+"' AND '"+ATail(aPeriodo)[1][2]+"' "+ CRLF
+cQuery += " 	AND SE2.D_E_L_E_T_ = ' ' "+ CRLF
+
+cQuery += " GROUP BY "+ CRLF
+cQuery += " 	SED.ED_CODIGO "+ CRLF
+cQuery += " 	,SED.ED_DESCRIC "+ CRLF
+cQuery += " 	,SED.ED_COND "+ CRLF
+
+cQuery += " ) TAB "+ CRLF
+
+cQuery += " GROUP BY "+ CRLF
+cQuery += " 	TAB.ED_CODIGO "+ CRLF
+cQuery += " 	,TAB.ED_DESCRIC "+ CRLF
+cQuery += " 	,TAB.ED_COND "+ CRLF
+
+cQuery += " ORDER BY "+ CRLF
+cQuery += " 	TAB.ED_CODIGO "+ CRLF
+
+// Salva query em disco para debug.
+If .T.//GetNewPar("SY_DEBUG", .T.)
+	MakeDir("\DEBUG\")
+	MemoWrite("\DEBUG\"+__cUserID+"_ALFREL05-COMPETENCIA.SQL", cQuery)
+EndIf
+
+cTMP1 := MPSysOpenQuery(cQuery)
+
+Return cTMP1
+
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} CaixaLoadDados
+Rotina para carregar os dados do relatorio via query. Regime de Caixa
+
+@author  Wilson A. Silva Jr
+@since   13/06/2021
+@version 1.0
+/*/
+//-------------------------------------------------------------------
+Static Function CaixaLoadDados(aPeriodo)
+
+Local cTMP1    := ""
+Local cQuery   := ""
+Local nX
+
+cQuery := " SELECT "+ CRLF
+cQuery += " 	TAB.ED_CODIGO "+ CRLF
+cQuery += " 	,TAB.ED_DESCRIC "+ CRLF
+cQuery += " 	,TAB.ED_COND "+ CRLF
+cQuery += " 	,MAX(TAB.FILHOS) AS FILHOS "+ CRLF
+
+For nX := 1 To Len(aPeriodo)
+    cCampo := "CPO_" + StrZero(nX,4)
+    cQuery += " 	,SUM(TAB."+cCampo+") AS "+cCampo+" "+ CRLF
+Next nX
+
+cQuery += " FROM ( "+ CRLF
+
+cQuery += " SELECT "+ CRLF
+cQuery += " 	 SED.ED_CODIGO "+ CRLF
+cQuery += " 	,SED.ED_DESCRIC "+ CRLF
+cQuery += " 	,SED.ED_COND "+ CRLF
+cQuery += " 	,(  SELECT COUNT(1) "+ CRLF
+cQuery += " 		FROM "+RetSqlName("SED")+" TOT (NOLOCK) "+ CRLF
+cQuery += " 		WHERE "+ CRLF
+cQuery += " 			TOT.ED_FILIAL = '"+xFilial("SED")+"' "+ CRLF
+cQuery += " 			AND LEFT(TOT.ED_PAI,LEN(SED.ED_CODIGO)) = SED.ED_CODIGO "+ CRLF
+cQuery += " 			AND TOT.ED_XMOSREL = 'S' "+ CRLF
+cQuery += " 			AND TOT.D_E_L_E_T_ = ' ' "+ CRLF
+cQuery += "  		) AS FILHOS "+ CRLF
+
+For nX := 1 To Len(aPeriodo)
+    cCampo := "CPO_" + StrZero(nX,4)
+    cQuery += " 	,0 AS "+cCampo+" "+ CRLF
+Next nX
+
+cQuery += " FROM "+RetSqlName("SED")+" SED (NOLOCK) "+ CRLF
+
+cQuery += " WHERE "+ CRLF
+cQuery += " 	SED.ED_FILIAL = '"+xFilial("SED")+"' "+ CRLF
+cQuery += " 	AND SED.ED_XMOSREL = 'S' "+ CRLF
+cQuery += " 	AND SED.D_E_L_E_T_ = ' ' "+ CRLF
+
+cQuery += " UNION ALL "+ CRLF
+
+cQuery += " SELECT "+ CRLF
+cQuery += " 	 SED.ED_CODIGO "+ CRLF
+cQuery += " 	,SED.ED_DESCRIC "+ CRLF
+cQuery += " 	,SED.ED_COND "+ CRLF
+cQuery += " 	,0 AS FILHOS "+ CRLF
+
+For nX := 1 To Len(aPeriodo)
+    cCampo  := "CPO_" + StrZero(nX,4)
+    cPerIni := aPeriodo[nX][1][1]
+    cPerFim := aPeriodo[nX][1][2]
+    cQuery += " 	,SUM(CASE WHEN SE5.E5_DATA BETWEEN '"+cPerIni+"' AND '"+cPerFim+"' THEN SE5.E5_VALOR * 1 ELSE 0 END) AS "+cCampo+" "+ CRLF
+Next nX
+
+cQuery += " FROM "+RetSqlName("SE1")+" SE1 (NOLOCK) "+ CRLF
+
+cQuery += " INNER JOIN "+RetSqlName("SE5")+" SE5 (NOLOCK) "+ CRLF
+cQuery += " 	ON SE5.E5_FILIAL = SE1.E1_FILIAL "+ CRLF
+cQuery += " 	AND SE5.E5_PREFIXO = SE1.E1_PREFIXO "+ CRLF
+cQuery += " 	AND SE5.E5_NUMERO = SE1.E1_NUM "+ CRLF
+cQuery += " 	AND SE5.E5_PARCELA = SE1.E1_PARCELA "+ CRLF
+cQuery += " 	AND SE5.E5_TIPO = SE1.E1_TIPO "+ CRLF
+cQuery += " 	AND SE5.E5_CLIFOR = SE1.E1_CLIENTE "+ CRLF
+cQuery += " 	AND SE5.E5_LOJA = SE1.E1_LOJA "+ CRLF
+cQuery += " 	AND SE5.E5_RECPAG = 'R' "+ CRLF
+cQuery += " 	AND SE5.E5_DATA BETWEEN '"+aPeriodo[1][1][1]+"' AND '"+ATail(aPeriodo)[1][2]+"' "+ CRLF
+cQuery += " 	AND SE5.D_E_L_E_T_ = ' ' "+ CRLF
+
+cQuery += " INNER JOIN "+RetSqlName("SED")+" SED (NOLOCK) "+ CRLF
+cQuery += " 	ON SED.ED_FILIAL = '"+xFilial("SED")+"' "+ CRLF
+cQuery += " 	AND SED.ED_CODIGO = E1_NATUREZ "+ CRLF 
+cQuery += " 	AND SED.ED_XMOSREL = 'S' "+ CRLF
+cQuery += " 	AND SED.D_E_L_E_T_ = ' ' "+ CRLF
+
+cQuery += " WHERE "+ CRLF
+cQuery += " 	SE1.E1_FILIAL = '"+xFilial("SE1")+"' "+ CRLF
+cQuery += " 	AND SE1.E1_EMPFAT = '"+cEmpFat+"' "+ CRLF
+cQuery += " 	AND SE1.E1_TIPO = 'DP' "+ CRLF
+cQuery += " 	AND SE1.E1_BAIXA <> ' ' "+ CRLF
+cQuery += " 	AND (SE1.E1_FATURA = ' ' OR E1_FATURA = 'NOTFAT')"+ CRLF
+cQuery += " 	AND SE1.D_E_L_E_T_ = ' ' "+ CRLF
+
+cQuery += " GROUP BY "+ CRLF
+cQuery += " 	SED.ED_CODIGO "+ CRLF
+cQuery += " 	,SED.ED_DESCRIC "+ CRLF
+cQuery += " 	,SED.ED_COND "+ CRLF
+
+cQuery += " UNION ALL "+ CRLF
+
+cQuery += " SELECT "+ CRLF
+cQuery += " 	 SED.ED_CODIGO "+ CRLF
+cQuery += " 	,SED.ED_DESCRIC "+ CRLF
+cQuery += " 	,SED.ED_COND "+ CRLF
+cQuery += " 	,0 AS FILHOS "+ CRLF
+
+For nX := 1 To Len(aPeriodo)
+    cCampo  := "CPO_" + StrZero(nX,4)
+    cPerIni := aPeriodo[nX][1][1]
+    cPerFim := aPeriodo[nX][1][2]
+    cQuery += " 	,SUM(CASE WHEN SE5.E5_DATA BETWEEN '"+cPerIni+"' AND '"+cPerFim+"' THEN SE5.E5_VALOR * 1 ELSE 0 END * (-1)) AS "+cCampo+" "+ CRLF
+Next nX
+
+cQuery += " FROM "+RetSqlName("SE2")+" SE2 (NOLOCK) "+ CRLF
+
+cQuery += " INNER JOIN "+RetSqlName("SE5")+" SE5 (NOLOCK) "+ CRLF
+cQuery += " 	ON SE5.E5_FILIAL = SE2.E2_FILIAL "+ CRLF
+cQuery += " 	AND SE5.E5_PREFIXO = SE2.E2_PREFIXO "+ CRLF
+cQuery += " 	AND SE5.E5_NUMERO = SE2.E2_NUM "+ CRLF
+cQuery += " 	AND SE5.E5_PARCELA = SE2.E2_PARCELA "+ CRLF
+cQuery += " 	AND SE5.E5_TIPO = SE2.E2_TIPO "+ CRLF
+cQuery += " 	AND SE5.E5_CLIFOR = SE2.E2_FORNECE "+ CRLF
+cQuery += " 	AND SE5.E5_LOJA = SE2.E2_LOJA "+ CRLF
+cQuery += " 	AND SE5.E5_RECPAG = 'P' "+ CRLF
+cQuery += " 	AND SE5.E5_DATA BETWEEN '"+aPeriodo[1][1][1]+"' AND '"+ATail(aPeriodo)[1][2]+"' "+ CRLF
+cQuery += " 	AND SE5.D_E_L_E_T_ = ' ' "+ CRLF
+
+cQuery += " INNER JOIN "+RetSqlName("SED")+" SED (NOLOCK) "+ CRLF
+cQuery += " 	ON SED.ED_FILIAL = '"+xFilial("SED")+"' "+ CRLF
+cQuery += " 	AND SED.ED_CODIGO = E2_NATUREZ "+ CRLF
+cQuery += " 	AND SED.ED_XMOSREL = 'S' "+ CRLF
+cQuery += " 	AND SED.D_E_L_E_T_ = ' ' "+ CRLF
+
+cQuery += " WHERE "+ CRLF
+cQuery += " 	SE2.E2_FILIAL = '"+xFilial("SE2")+"' "+ CRLF
+cQuery += " 	AND SE2.E2_EMPFAT = '"+cEmpFat+"' "+ CRLF
+cQuery += " 	AND SE2.E2_TIPO = 'DP' "+ CRLF
+cQuery += " 	AND SE2.E2_BAIXA <> ' ' "+ CRLF
+cQuery += " 	AND SE2.D_E_L_E_T_ = ' ' "+ CRLF
+
+cQuery += " GROUP BY "+ CRLF
+cQuery += " 	SED.ED_CODIGO "+ CRLF
+cQuery += " 	,SED.ED_DESCRIC "+ CRLF
+cQuery += " 	,SED.ED_COND "+ CRLF
+
+cQuery += " ) TAB "+ CRLF
+
+cQuery += " GROUP BY "+ CRLF
+cQuery += " 	TAB.ED_CODIGO "+ CRLF
+cQuery += " 	,TAB.ED_DESCRIC "+ CRLF
+cQuery += " 	,TAB.ED_COND "+ CRLF
+
+cQuery += " ORDER BY "+ CRLF
+cQuery += " 	TAB.ED_CODIGO "+ CRLF
+
+// Salva query em disco para debug.
+If .T.//GetNewPar("SY_DEBUG", .T.)
+	MakeDir("\DEBUG\")
+	MemoWrite("\DEBUG\"+__cUserID+"_ALFREL05-CAIXA.SQL", cQuery)
+EndIf
+
+cTMP1 := MPSysOpenQuery(cQuery)
+
+Return cTMP1
 //-------------------------------------------------------------------
 /*/{Protheus.doc} RetSldIni
 Retorna ultimo saldo a partir da data informada.

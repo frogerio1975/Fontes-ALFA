@@ -68,19 +68,22 @@ Private cEmpFat  := "1"
 Private cPrefixo := CriaVar("E2_PREFIXO",.F.)
 Private cTipoE1  := "DP"
 Private cNumIni  := CriaVar("E2_NUM",.F.)
-Private cNumFim  := CriaVar("E2_NUM",.F.)
+Private cNumFim  := Repl("Z",TamSX3("E2_NUM")[1]) //CriaVar("E2_NUM",.F.)
 Private dEmisIni := CriaVar("E2_EMISSAO",.F.)
-Private dEmisFim := CriaVar("E2_EMISSAO",.F.)
+Private dEmisFim := Ctod("31/12/2049") //CriaVar("E2_EMISSAO",.F.)
 Private dVencIni := CriaVar("E2_VENCREA",.F.)
-Private dVencFim := CriaVar("E2_VENCREA",.F.)
+Private dVencFim := Ctod("31/12/2049") //CriaVar("E2_VENCREA",.F.)
 Private dBaixIni := CriaVar("E2_BAIXA",.F.)
-Private dBaixFim := CriaVar("E2_BAIXA",.F.)
+Private dBaixFim := Ctod("31/12/2049") //CriaVar("E2_BAIXA",.F.)
 Private cForIni  := CriaVar("E2_FORNECE",.F.)
-Private cForFim  := CriaVar("E2_FORNECE",.F.)
+Private cForFim  := Repl("Z",TamSX3("E2_FORNECE")[1]) //CriaVar("E2_FORNECE",.F.)
 Private cNfsIni  := CriaVar("E2_NUMNOTA",.F.)
-Private cNfsFim  := CriaVar("E2_NUMNOTA",.F.)
+Private cNfsFim  := Repl("Z",TamSX3("E2_NUMNOTA")[1]) //CriaVar("E2_NUMNOTA",.F.)
 Private dNfsIni  := CriaVar("E2_EMISSAO",.F.)
-Private dNfsFim  := CriaVar("E2_EMISSAO",.F.)
+Private dNfsFim  := Ctod("31/12/2049") //CriaVar("E2_EMISSAO",.F.)
+Private aTipoCP  := { "1=Em Aberto", "2=Baixados", "3=Todos"}
+Private cTipoCP  := "3"
+
 
 AADD( aBoxParam, {2,"Empresa"         , cEmpFat   , aEmpFat, 50, ".F.", .T.} )
 AADD( aBoxParam, {1,"Prefixo"         , cPrefixo  , "@!", "", ""   , "", 50, .F.} )
@@ -99,6 +102,7 @@ AADD( aBoxParam, {1,"Num.NFS DE"      , cNfsIni   , "@!", "", ""   , "", 50, .F.
 AADD( aBoxParam, {1,"Num.NFS ATE"     , cNfsFim   , "@!", "", ""   , "", 50, .F.} )
 // AADD( aBoxParam, {1,"Dt.NFS DE"       , dNfsIni   , "@!", "", ""   , "", 50, .F.} )
 // AADD( aBoxParam, {1,"Dt.NFS ATE"      , dNfsFim   , "@!", "", ""   , "", 50, .F.} )
+AADD( aBoxParam, {2,"Tipo CP"         , cTipoCP   , aTipoCP, 50, ".F.", .T.} )
 
 If ParamBox(aBoxParam,"Parametros - Contas a Pagar",@aRetParam,,,,,,,,.F.)
 
@@ -119,7 +123,7 @@ If ParamBox(aBoxParam,"Parametros - Contas a Pagar",@aRetParam,,,,,,,,.F.)
     cNfsFim  := aRetParam[15]
     // dNfsIni  := aRetParam[16]
     // dNfsFim  := aRetParam[17]
-
+    cTipoCP  := aRetParam[16]
     // If lRetorno .and. Empty(cContrato)
     //     Help(Nil,Nil,ProcName(),,"Por favor, necessário informar o número de contrato.", 1, 5)
     //     lRetorno := .F.
@@ -199,12 +203,13 @@ oXml:AddRow(, {"Vencto. DE"      , DToC(dVencIni)   }, aStl)
 oXml:AddRow(, {"Vencto. ATE"     , DToC(dVencFim)   }, aStl)
 oXml:AddRow(, {"Pagto DE"        , DToC(dBaixIni)   }, aStl)
 oXml:AddRow(, {"Pagto ATE"       , DToC(dBaixFim)   }, aStl)
-oXml:AddRow(, {"Fornecedor DE"      , cForIni          }, aStl)
-oXml:AddRow(, {"Fornecedor ATE"     , cForFim          }, aStl)
-// oXml:AddRow(, {"Num.NFS DE"      , cNfsIni          }, aStl)
-// oXml:AddRow(, {"Num.NFS ATE"     , cNfsFim          }, aStl)
+oXml:AddRow(, {"Fornecedor DE"   , cForIni          }, aStl)
+oXml:AddRow(, {"Fornecedor ATE"  , cForFim          }, aStl)
+oXml:AddRow(, {"Num.NFS DE"      , cNfsIni          }, aStl)
+oXml:AddRow(, {"Num.NFS ATE"     , cNfsFim          }, aStl)
 // oXml:AddRow(, {"Dt.NFS DE"       , DToC(dNfsIni)    }, aStl)
 // oXml:AddRow(, {"Dt.NFS ATE"      , DToC(dNfsFim)    }, aStl)
+oXml:AddRow(, {"Tipo CP"         , aTipoCP[Val(cTipoCP)] }, aStl)
 
 oXml:SkipLine(1)
 
@@ -325,28 +330,34 @@ oXml:setFolderName("Contas a Pagar")
 oXml:showGridLine(.F.)
 oXml:SetZoom(100)
 
-aAdd( aColSize, "54.75" ) // Data emissão
-aAdd( aColSize, "54.75" ) // Data vencimento
-aAdd( aColSize, "54.75" ) // Data pagamento
+aAdd( aColSize, "65.25" ) // Dt.Emissao
+aAdd( aColSize, "65.25" ) // Dt.Vencimento
+aAdd( aColSize, "65.25" ) // Dt.Pagamento
 aAdd( aColSize, "65.75" ) // Dias em atraso
-
-aAdd( aColSize, "54.75" ) // Data liber
-aAdd( aColSize, "54.75" ) // Data liber
-
-aAdd( aColSize, "120.00" ) // Fornecedor
-aAdd( aColSize, "65.25" ) // No Nota Fiscal
+aAdd( aColSize, "65.25" ) // Dt.Liberacao
+aAdd( aColSize, "65.25" ) // Usuario Liberação
+aAdd( aColSize, "120.25") // Fornecedor
+aAdd( aColSize, "65.25" ) // CNPJ
+aAdd( aColSize, "65.25" ) // Nota Fiscal
 aAdd( aColSize, "65.25" ) // Prefixo
-aAdd( aColSize, "65.25" ) // No Título
+aAdd( aColSize, "65.25" ) // Titulo
 aAdd( aColSize, "65.25" ) // Parcela
-aAdd( aColSize, "65.25" ) // Líquido a Pagar
-aAdd( aColSize, "65.25" ) // Valor Recebido
-aAdd( aColSize, "65.25" ) // Impostos
+aAdd( aColSize, "65.25" ) // Valor Liquido
+aAdd( aColSize, "65.25" ) // Valor Bruto
+aAdd( aColSize, "65.25" ) // Imposto
+aAdd( aColSize, "65.25" ) // Liquido a Pagar
 aAdd( aColSize, "65.25" ) // Desconto
 aAdd( aColSize, "65.25" ) // Multa
 aAdd( aColSize, "65.25" ) // Juros
-aAdd( aColSize, "65.25" ) // Total Recebido
-aAdd( aColSize, "120.25" ) // historico
-aAdd( aColSize, "65.25" ) // Valor nota fiscal
+aAdd( aColSize, "65.25" ) // Total Pago
+aAdd( aColSize, "120.25") // Histórico
+aAdd( aColSize, "65.25" ) // Natureza
+aAdd( aColSize, "120.25") // Descricao Natureza
+aAdd( aColSize, "65.25" ) // Tipo Pagamento
+aAdd( aColSize, "65.25" ) // Banco
+aAdd( aColSize, "65.25" ) // Agencia
+aAdd( aColSize, "65.25" ) // Conta
+aAdd( aColSize, "65.25" ) // Pix
 
 // Ajusta o tamanho das colunas da planilha.
 oXML:SetColSize(aColSize)
@@ -368,19 +379,20 @@ aAdd( aCabTit, "" ) // Parcela
 aAdd( aCabTit, "" ) // Líquido a Pagar
 aAdd( aCabTit, "" ) // Valor Recebido
 aAdd( aCabTit, "Data emissão" ) // Impostos
-aAdd( aCabTit, Date() ) // Desconto
+aAdd( aCabTit, Dtoc(Date()) ) // Desconto
 aAdd( aCabTit, "" ) // Multa
 aAdd( aCabTit, "" ) // Juros
 aAdd( aCabTit, "" ) // Total Recebido
 aAdd( aCabTit, "" ) // historico
 aAdd( aCabTit, "" ) // valor nota fiscal
-
-
+aAdd( aCabTit, "" ) // Natureza
+aAdd( aCabTit, "" ) // Descricao Natureza
 aAdd( aCabTit, "" ) //TIPO DE PGTO
 aAdd( aCabTit, "" ) //BANCO
 aAdd( aCabTit, "" ) //AGENCIA
 aAdd( aCabTit, "" ) //CONTA	
 aAdd( aCabTit, "" ) //PIX
+
 
 aTitStl := {}
 
@@ -403,10 +415,10 @@ aAdd( aTitStl, oStlTit2 ) // Desconto
 aAdd( aTitStl, oStlTit ) // Multa
 aAdd( aTitStl, oStlTit ) // Juros
 aAdd( aTitStl, oStlTit ) // Total Recebido
-
 aAdd( aTitStl, oStlTit ) // historico
 aAdd( aTitStl, oStlTit ) // valor nota fiscal
-
+aAdd( aTitStl, oStlTit ) // Natureza
+aAdd( aTitStl, oStlTit ) // Descricao Natureza
 aAdd( aTitStl, oStlTit ) //TIPO DE PGTO
 aAdd( aTitStl, oStlTit ) //BANCO
 aAdd( aTitStl, oStlTit ) //AGENCIA
@@ -426,14 +438,10 @@ aAdd( aCabDad, "Data emissão" ) // Data emissão
 aAdd( aCabDad, "Data vencimento" ) // Data vencimento
 aAdd( aCabDad, "Data pagamento" ) // Data pagamento
 aAdd( aCabDad, "Dias em atraso" ) // Dias em atraso
-
 aAdd( aCabDad, "Data Liberação" ) // Data liber
 aAdd( aCabDad, "Usuario Liberação" ) // user lib
-
 aAdd( aCabDad, "Fornecedor" ) // Fornecedor
-
 aAdd( aCabDad, "CPF/CNPJ" ) // CNPJ
-
 aAdd( aCabDad, "No Nota Fiscal" ) // No Nota Fiscal
 aAdd( aCabDad, "Prefixo" ) // Prefixo
 aAdd( aCabDad, "No Título" ) // No Título
@@ -446,9 +454,9 @@ aAdd( aCabDad, "Desconto" ) // Desconto
 aAdd( aCabDad, "Multa" ) // Multa
 aAdd( aCabDad, "Juros" ) // Juros
 aAdd( aCabDad, "Total Pago" ) // Total Pago
-
 aAdd( aCabDad, "Histórico" ) // Histórico
-
+aAdd( aCabDad, "Natureza" ) // Natureza
+aAdd( aCabDad, "Descricao" ) // Descricao
 aAdd( aCabDad, "Tipo de Pgto")
 aAdd( aCabDad, "Banco")
 aAdd( aCabDad, "Agencia	")
@@ -463,10 +471,8 @@ aAdd( aCabStl, oStlCab1 ) // Data emissão
 aAdd( aCabStl, oStlCab1 ) // Data vencimento
 aAdd( aCabStl, oStlCab1 ) // Data pagamento
 aAdd( aCabStl, oStlCab1 ) // Dias em atraso
-
 aAdd( aCabStl, oStlCab1 ) // Data lib
 aAdd( aCabStl, oStlCab1 ) // user lib
-
 aAdd( aCabStl, oStlCab1 ) // Fornecedor
 aAdd( aCabStl, oStlCab1 ) // CPF
 aAdd( aCabStl, oStlCab1 ) // No Nota Fiscal
@@ -481,9 +487,9 @@ aAdd( aCabStl, oStlCab1 ) // Desconto
 aAdd( aCabStl, oStlCab1 ) // Multa
 aAdd( aCabStl, oStlCab1 ) // Juros
 aAdd( aCabStl, oStlCab1 ) // Total Pago
-
 aAdd( aCabStl, oStlCab1 ) // historico
-
+aAdd( aCabStl, oStlCab1 ) // Natureza
+aAdd( aCabStl, oStlCab1 ) // Descricao
 aAdd( aCabStl, oStlCab1 ) //TIPO DE PGTO
 aAdd( aCabStl, oStlCab1 ) //BANCO
 aAdd( aCabStl, oStlCab1 ) //AGENCIA
@@ -546,7 +552,8 @@ While (cTMP1)->(!EOF())
     aAdd( aRowDad, SToD((cTMP1)->E2_EMISSAO) ) // Data emissão
     aAdd( aRowDad, SToD((cTMP1)->E2_VENCREA) ) // Data vencimento
     aAdd( aRowDad, IIF(!Empty((cTMP1)->E2_BAIXA),SToD((cTMP1)->E2_BAIXA),"") ) // Data pagamento
-    aAdd( aRowDad, "=IFS(RC[-1]&lt;&gt;&quot;&quot;,0,RC[-2]&lt;=R1C16,R1C16-RC[-2],R1C16&lt;RC[-2],0)" ) // Dias em atraso
+    aAdd( aRowDad, IIF(Empty((cTMP1)->E2_BAIXA),dDatabase-SToD((cTMP1)->E2_VENCREA),SToD((cTMP1)->E2_BAIXA)-SToD((cTMP1)->E2_VENCREA)))  //IIf(Empty((cTMP1)->E1_XDTREC),"","=IFS(RC[-1]&lt;&gt;&quot;&quot;,0,RC[-2]&lt;=RC[-1],RC[-1]-RC[-2],RC[-1]&lt;RC[-2],0)" )) // Dias em atraso
+  //aAdd( aRowDad, "=IFS(RC[-1]&lt;&gt;&quot;&quot;,0,RC[-2]&lt;=R1C16,R1C16-RC[-2],R1C16&lt;RC[-2],0)" ) // Dias em atraso
 
     aAdd( aRowDad, SToD((cTMP1)->E2_DATALIB) ) // Data liber
     aAdd( aRowDad, ALLTRIM( (cTMP1)->E2_USUALIB ) ) // Data liber
@@ -570,6 +577,8 @@ While (cTMP1)->(!EOF())
     aAdd( aRowDad, "=RC[-6]+RC[-2]+RC[-1]" ) // Total Pago
 
     aAdd( aRowDad, (cTMP1)->E2_HIST ) // historico
+    aAdd( aRowDad, (cTMP1)->E2_NATUREZ ) // historico
+    aAdd( aRowDad, Posicione("SED",1,xFilial("SED")+(cTMP1)->E2_NATUREZ,"ED_DESCRIC") ) // historico
 
     aAdd( aRowDad, cRet ) //TIPO DE PGTO
     aAdd( aRowDad, (cTMP1)->A2_BANCO ) //BANCO
@@ -603,6 +612,8 @@ While (cTMP1)->(!EOF())
     aAdd( aStl, oSN06Num ) // Total Pago
 
     aAdd( aStl, oSN03Txt ) // hist
+    aAdd( aStl, oSN03Txt ) // Natureza
+    aAdd( aStl, oSN03Txt ) // Descricao
 
     aAdd( aStl, oSN03Txt ) //TIPO DE PGTO
     aAdd( aStl, oSN03Txt ) //BANCO
@@ -630,13 +641,10 @@ If nTotLin > 0
     aAdd( aRowDad, "" ) // Data vencimento
     aAdd( aRowDad, "" ) // Data pagamento
     aAdd( aRowDad, "" ) // Dias em atraso
-
     aAdd( aRowDad, "" ) // LIB
     aAdd( aRowDad, "" ) // LIB
-
     aAdd( aRowDad, "" ) // Fornecedor
     aAdd( aRowDad, "" ) // CPF
-
     aAdd( aRowDad, "" ) // No Nota Fiscal
     aAdd( aRowDad, "" ) // Prefixo
     aAdd( aRowDad, "" ) // No Título
@@ -649,8 +657,9 @@ If nTotLin > 0
     aAdd( aRowDad, "=SUM(R[-"+cValToChar(nTotLin)+"]C:R[-1]C)" ) // Multa
     aAdd( aRowDad, "=SUM(R[-"+cValToChar(nTotLin)+"]C:R[-1]C)" ) // Juros
     aAdd( aRowDad, "=SUM(R[-"+cValToChar(nTotLin)+"]C:R[-1]C)" ) // Total Pago
-
     aAdd( aRowDad, "" ) // hist
+    aAdd( aRowDad, "" ) // Natureza
+    aAdd( aRowDad, "" ) // Descricao
     aAdd( aRowDad, "" ) //TIPO DE PGTO
     aAdd( aRowDad, "" ) //BANCO
     aAdd( aRowDad, "" ) //AGENCIA
@@ -661,28 +670,25 @@ If nTotLin > 0
     aAdd( aStl, oSN07Txt ) // Data vencimento
     aAdd( aStl, oSN07Txt ) // Data pagamento
     aAdd( aStl, oSN07Txt ) // Dias em atraso
-
     aAdd( aStl, oSN07Txt ) // LIB
     aAdd( aStl, oSN07Txt ) // LIB
-
     aAdd( aStl, oSN07Txt ) // Fornecedor
     aAdd( aStl, oSN07Txt ) // CPF
-
     aAdd( aStl, oSN07Txt ) // No Nota Fiscal
     aAdd( aStl, oSN07Txt ) // Prefixo
     aAdd( aStl, oSN07Txt ) // No Título
     aAdd( aStl, oSN07Txt ) // Parcela
     aAdd( aStl, oSN08Num ) // Valor NF
     aAdd( aStl, oSN08Num ) // Valor brto
-
     aAdd( aStl, oSN08Num ) // Impostos
     aAdd( aStl, oSN08Num ) // Líquido a Pagar
     aAdd( aStl, oSN08Num ) // Desconto
     aAdd( aStl, oSN08Num ) // Multa
     aAdd( aStl, oSN08Num ) // Juros
     aAdd( aStl, oSN08Num ) // Total Pago
-
     aAdd( aStl, oSN07Txt ) // hist
+    aAdd( aStl, oSN07Txt ) // Natureza
+    aAdd( aStl, oSN07Txt ) // Descricao
     aAdd( aStl, oSN07Txt ) //TIPO DE PGTO
     aAdd( aStl, oSN07Txt ) //BANCO
     aAdd( aStl, oSN07Txt ) //AGENCIA
@@ -702,28 +708,28 @@ If nTotLin > 0
     oXML:AddRow( "15.00", {"Período"  , "", "", "A Pagar" }, {oStlCab1, oStlCab1, oStlCab1, oStlCab1} )
     oXml:setMerge(, , , 2)
 
-    nTotLin++
-    oXML:AddRow( "15.00", {"à Vencer"                    , "", "", "=SUMIFS(R[-"+cValToChar(nTotLin)+"]C[6]:R[-5]C[6],R[-"+cValToChar(nTotLin)+"]C:R[-5]C,&quot;=0&quot;,R[-"+cValToChar(nTotLin)+"]C[7]:R[-5]C[7],&quot;=0&quot;)"      }, {oSN03Txt, oSN03Txt, oSN03Txt, oSN05Num} )
+        nTotLin++
+    oXML:AddRow( "15.00", {"à Vencer"                    , "", "", "=SUMIFS(R[-"+cValToChar(nTotLin)+"]C[12]:R[-5]C[12],R[-"+cValToChar(nTotLin)+"]C:R[-5]C,&quot;<=0&quot,R[-"+cValToChar(nTotLin)+"]C[-1]:R[-5]C[-1],&quot;&quot)"      }, {oSN03Txt, oSN03Txt, oSN03Txt, oSN05Num} )
     oXml:setMerge(, , , 2)
 
     nTotLin++
-    oXML:AddRow( "15.00", {"Vencidos de 1 a 30 dias"     , "", "", "=SUMIFS(R[-"+cValToChar(nTotLin)+"]C[6]:R[-6]C[6],R[-"+cValToChar(nTotLin)+"]C:R[-6]C,&quot;&gt;0&quot;,R[-"+cValToChar(nTotLin)+"]C:R[-6]C,&quot;&lt;31&quot;)"     }, {oSN03Txt, oSN03Txt, oSN03Txt, oSN05Num} )
+    oXML:AddRow( "15.00", {"Vencidos de 1 a 30 dias"     , "", "", "=SUMIFS(R[-"+cValToChar(nTotLin)+"]C[12]:R[-6]C[12],R[-"+cValToChar(nTotLin)+"]C:R[-6]C,&quot;&gt;0&quot,R[-"+cValToChar(nTotLin)+"]C:R[-6]C,&quot;&lt;31&quot,R[-"+cValToChar(nTotLin)+"]C[-1]:R[-6]C[-1],&quot;&quot)"     }, {oSN03Txt, oSN03Txt, oSN03Txt, oSN05Num} )
     oXml:setMerge(, , , 2)
 
     nTotLin++
-    oXML:AddRow( "15.00", {"Vencidos de 31 a 60 dias"    , "", "", "=SUMIFS(R[-"+cValToChar(nTotLin)+"]C[6]:R[-7]C[6],R[-"+cValToChar(nTotLin)+"]C:R[-7]C,&quot;&gt;30&quot;,R[-"+cValToChar(nTotLin)+"]C:R[-7]C,&quot;&lt;61&quot;)"    }, {oSN03Txt, oSN03Txt, oSN03Txt, oSN05Num} )
+    oXML:AddRow( "15.00", {"Vencidos de 31 a 60 dias"    , "", "", "=SUMIFS(R[-"+cValToChar(nTotLin)+"]C[12]:R[-7]C[12],R[-"+cValToChar(nTotLin)+"]C:R[-7]C,&quot;&gt;30&quot,R[-"+cValToChar(nTotLin)+"]C:R[-7]C,&quot;&lt;61&quot,R[-"+cValToChar(nTotLin)+"]C[-1]:R[-7]C[-1],&quot;&quot)"    }, {oSN03Txt, oSN03Txt, oSN03Txt, oSN05Num} )
     oXml:setMerge(, , , 2)
 
     nTotLin++
-    oXML:AddRow( "15.00", {"Vencidos de 61 a 90 dias"    , "", "", "=SUMIFS(R[-"+cValToChar(nTotLin)+"]C[6]:R[-8]C[6],R[-"+cValToChar(nTotLin)+"]C:R[-8]C,&quot;&gt;60&quot;,R[-"+cValToChar(nTotLin)+"]C:R[-8]C,&quot;&lt;91&quot;)"    }, {oSN03Txt, oSN03Txt, oSN03Txt, oSN05Num} )
+    oXML:AddRow( "15.00", {"Vencidos de 61 a 90 dias"    , "", "", "=SUMIFS(R[-"+cValToChar(nTotLin)+"]C[12]:R[-8]C[12],R[-"+cValToChar(nTotLin)+"]C:R[-8]C,&quot;&gt;60&quot,R[-"+cValToChar(nTotLin)+"]C:R[-8]C,&quot;&lt;91&quot,R[-"+cValToChar(nTotLin)+"]C[-1]:R[-8]C[-1],&quot;&quot)"    }, {oSN03Txt, oSN03Txt, oSN03Txt, oSN05Num} )
     oXml:setMerge(, , , 2)
 
     nTotLin++
-    oXML:AddRow( "15.00", {"Vencidos de 91 a 180 dias"   , "", "", "=SUMIFS(R[-"+cValToChar(nTotLin)+"]C[6]:R[-9]C[6],R[-"+cValToChar(nTotLin)+"]C:R[-9]C,&quot;&gt;90&quot;,R[-"+cValToChar(nTotLin)+"]C:R[-9]C,&quot;&lt;181&quot;)"   }, {oSN03Txt, oSN03Txt, oSN03Txt, oSN05Num} )
+    oXML:AddRow( "15.00", {"Vencidos de 91 a 180 dias"   , "", "", "=SUMIFS(R[-"+cValToChar(nTotLin)+"]C[12]:R[-9]C[12],R[-"+cValToChar(nTotLin)+"]C:R[-9]C,&quot;&gt;90&quot,R[-"+cValToChar(nTotLin)+"]C:R[-9]C,&quot;&lt;181&quot,R[-"+cValToChar(nTotLin)+"]C[-1]:R[-9]C[-1],&quot;&quot)"   }, {oSN03Txt, oSN03Txt, oSN03Txt, oSN05Num} )
     oXml:setMerge(, , , 2)
 
     nTotLin++
-    oXML:AddRow( "15.00", {"Vencidos acima de 180 dias"  , "", "", "=SUMIFS(R[-"+cValToChar(nTotLin)+"]C[6]:R[-10]C[6],R[-"+cValToChar(nTotLin)+"]C:R[-10]C,&quot;&gt;180&quot;)"                                                        }, {oSN03Txt, oSN03Txt, oSN03Txt, oSN05Num} )
+    oXML:AddRow( "15.00", {"Vencidos acima de 180 dias"  , "", "", "=SUMIFS(R[-"+cValToChar(nTotLin)+"]C[12]:R[-10]C[12],R[-"+cValToChar(nTotLin)+"]C:R[-10]C,&quot;&gt;180&quot,R[-"+cValToChar(nTotLin)+"]C[-1]:R[-10]C[-1],&quot;&quot)"                                                        }, {oSN03Txt, oSN03Txt, oSN03Txt, oSN05Num} )
     oXml:setMerge(, , , 2)
 
     nTotLin++
@@ -858,11 +864,18 @@ EndIf
 //     cAuxFim := Transform(DToS(dNfsFim), "@R 9999-99-99") + "T99:99:99"
 //     cQuery += " 	AND SE2.E2_XDTREC BETWEEN '"+cAuxIni+"' AND '"+cAuxFim+"' "+ CRLF
 // EndIf
+If (cTipoCP == "1") //Em aberto
+    cQuery += " 	AND SE2.E2_BAIXA = '' "+ CRLF
+    cQuery += " 	AND SE2.E2_SALDO > 0 "+ CRLF
+ElseIf (cTipoCP == "2") //Baixado
+    cQuery += " 	AND SE2.E2_BAIXA <> '' "+ CRLF
+    cQuery += " 	AND SE2.E2_SALDO < SE2.E2_VALOR "+ CRLF
+EndIf
 
 cQuery += " 	AND SE2.D_E_L_E_T_ = ' ' "+ CRLF
 
 cQuery += " ORDER BY "+ CRLF
-cQuery += " 	SE2.E2_VENCREA "+ CRLF
+cQuery += " 	SE2.E2_VENCREA ASC, SE2.E2_NUMNOTA "+ CRLF
 
 // Salva query em disco para debug.
 If .T.//GetNewPar("SY_DEBUG", .T.)

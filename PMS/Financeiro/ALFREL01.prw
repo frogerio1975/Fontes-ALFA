@@ -68,19 +68,22 @@ Private cEmpFat  := "1"
 Private cPrefixo := CriaVar("E1_PREFIXO",.F.)
 Private cTipoE1  := "DP"
 Private cNumIni  := CriaVar("E1_NUM",.F.)
-Private cNumFim  := CriaVar("E1_NUM",.F.)
+Private cNumFim  := Repl("Z",TamSX3("E1_NUM")[1]) //CriaVar("E1_NUM",.F.)
 Private dEmisIni := CriaVar("E1_EMISSAO",.F.)
-Private dEmisFim := CriaVar("E1_EMISSAO",.F.)
+Private dEmisFim := Ctod("31/12/2049") //CriaVar("E1_EMISSAO",.F.)
 Private dVencIni := CriaVar("E1_VENCREA",.F.)
-Private dVencFim := CriaVar("E1_VENCREA",.F.)
+Private dVencFim := Ctod("31/12/2049") //CriaVar("E1_VENCREA",.F.)
 Private dBaixIni := CriaVar("E1_BAIXA",.F.)
-Private dBaixFim := CriaVar("E1_BAIXA",.F.)
+Private dBaixFim := Ctod("31/12/2049") //CriaVar("E1_BAIXA",.F.)
 Private cCliIni  := CriaVar("E1_CLIENTE",.F.)
-Private cCliFim  := CriaVar("E1_CLIENTE",.F.)
+Private cCliFim  := Repl("Z",TamSX3("E1_CLIENTE")[1]) //CriaVar("E1_CLIENTE",.F.)
 Private cNfsIni  := CriaVar("E1_XNUMNFS",.F.)
-Private cNfsFim  := CriaVar("E1_XNUMNFS",.F.)
+Private cNfsFim  := Repl("Z",TamSX3("E1_XNUMNFS")[1]) //CriaVar("E1_XNUMNFS",.F.)
 Private dNfsIni  := CriaVar("E1_EMISSAO",.F.)
-Private dNfsFim  := CriaVar("E1_EMISSAO",.F.)
+Private dNfsFim  := Ctod("31/12/2049") //CriaVar("E1_EMISSAO",.F.)
+Private aTipoCR  := { "1=Em Aberto", "2=Baixados", "3=Todos"}
+Private cTipoCR  := "3"
+
 
 AADD( aBoxParam, {2,"Empresa"         , cEmpFat   , aEmpFat, 50, ".F.", .T.} )
 AADD( aBoxParam, {1,"Prefixo"         , cPrefixo  , "@!", "", ""   , "", 50, .F.} )
@@ -99,6 +102,7 @@ AADD( aBoxParam, {1,"Num.NFS DE"      , cNfsIni   , "@!", "", ""   , "", 50, .F.
 AADD( aBoxParam, {1,"Num.NFS ATE"     , cNfsFim   , "@!", "", ""   , "", 50, .F.} )
 AADD( aBoxParam, {1,"Dt.NFS DE"       , dNfsIni   , "@!", "", ""   , "", 50, .F.} )
 AADD( aBoxParam, {1,"Dt.NFS ATE"      , dNfsFim   , "@!", "", ""   , "", 50, .F.} )
+AADD( aBoxParam, {2,"Tipo CR"         , cTipoCR   , aTipoCR, 50, ".F.", .T.} )
 
 If ParamBox(aBoxParam,"Parametros - Contas a Receber",@aRetParam,,,,,,,,.F.)
 
@@ -119,6 +123,7 @@ If ParamBox(aBoxParam,"Parametros - Contas a Receber",@aRetParam,,,,,,,,.F.)
     cNfsFim  := aRetParam[15]
     dNfsIni  := aRetParam[16]
     dNfsFim  := aRetParam[17]
+    cTipoCR  := aRetParam[18]
 
     // If lRetorno .and. Empty(cContrato)
     //     Help(Nil,Nil,ProcName(),,"Por favor, necessário informar o número de contrato.", 1, 5)
@@ -205,6 +210,7 @@ oXml:AddRow(, {"Num.NFS DE"      , cNfsIni          }, aStl)
 oXml:AddRow(, {"Num.NFS ATE"     , cNfsFim          }, aStl)
 oXml:AddRow(, {"Dt.NFS DE"       , DToC(dNfsIni)    }, aStl)
 oXml:AddRow(, {"Dt.NFS ATE"      , DToC(dNfsFim)    }, aStl)
+oXml:AddRow(, {"Tipo CR"         , aTipoCR[Val(cTipoCR)] }, aStl)
 
 oXml:SkipLine(1)
 
@@ -357,6 +363,7 @@ aAdd( aColSize, "65.25" ) //Tipo Servico
 aAdd( aColSize, "65.25" ) //Tipo Parcela
 aAdd( aColSize, "65.25" ) //Pagamento Atrelado Entreg
 aAdd( aColSize, "65.25" ) //E1_NATUREZ
+aAdd( aColSize, "65.25" ) //E1_NATUREZ
 
 // Ajusta o tamanho das colunas da planilha.
 oXML:SetColSize(aColSize)
@@ -376,7 +383,7 @@ aAdd( aCabTit, "" ) // Parcela
 aAdd( aCabTit, "" ) // Líquido a Receber
 aAdd( aCabTit, "" ) // Valor Recebido
 aAdd( aCabTit, "Data emissão" ) // Impostos
-aAdd( aCabTit, Date() ) // Desconto
+aAdd( aCabTit, Dtoc(Date()) ) // Desconto
 aAdd( aCabTit, "" ) // Multa
 aAdd( aCabTit, "" ) // Juros
 aAdd( aCabTit, "" ) // Total Recebido
@@ -385,6 +392,7 @@ aAdd( aCabTit, "" ) // hist
 aAdd( aCabTit, '' ) //Tipo Servico
 aAdd( aCabTit, '' ) //Tipo Parcela
 aAdd( aCabTit, '' ) //Pagamento Atrelado Entreg
+aAdd( aCabTit, '' ) //E1_NATUREZ
 aAdd( aCabTit, '' ) //E1_NATUREZ
 
 aTitStl := {}
@@ -419,6 +427,7 @@ aAdd( aTitStl, oStlTit ) // hist
 aAdd( aTitStl, oStlTit ) //Tipo Servico
 aAdd( aTitStl, oStlTit ) //Tipo Parcela
 aAdd( aTitStl, oStlTit ) //Pagamento Atrelado Entreg
+aAdd( aTitStl, oStlTit ) //NATUREZ
 aAdd( aTitStl, oStlTit ) //NATUREZ
 oXML:AddRow( HeightRowTitulo, aCabTit, aTitStl)
 
@@ -460,7 +469,8 @@ aAdd( aCabDad, "Historico" ) // Total Recebido
 aAdd( aCabDad, 'Tipo Servico' ) //Tipo Servico
 aAdd( aCabDad, 'Tipo Parcela' ) //Tipo Parcela
 aAdd( aCabDad, 'Pagamento Atrelado Entreg' ) //Pagamento Atrelado Entreg
-aAdd( aCabDad, 'Natureza' ) //Pagamento Atrelado Entreg
+aAdd( aCabDad, 'Natureza' ) //Natureza
+aAdd( aCabDad, 'Desc.Natureza' ) //Descricao Natureza
 aCabStl := {}
 
 aAdd( aCabStl, oStlCab1 ) // Data emissão
@@ -494,6 +504,7 @@ aAdd( aCabStl, oStlCab1 ) // hist
 aAdd( aCabStl, oStlCab1 ) //Tipo Servico
 aAdd( aCabStl, oStlCab1 ) //Tipo Parcela
 aAdd( aCabStl, oStlCab1 ) //Pagamento Atrelado Entreg
+aAdd( aCabStl, oStlCab1 ) //naturez
 aAdd( aCabStl, oStlCab1 ) //naturez
 
 oXML:AddRow(HeightRowCab1, aCabDad, aCabStl)
@@ -544,7 +555,7 @@ While (cTMP1)->(!EOF())
     
     aAdd( aRowDad, SToD((cTMP1)->E1_VENCREA) ) // Data vencimento
     aAdd( aRowDad, IIF(!Empty((cTMP1)->E1_BAIXA),SToD((cTMP1)->E1_BAIXA),"") ) // Data pagamento
-    aAdd( aRowDad, "=IFS(RC[-1]&lt;&gt;&quot;&quot;,0,RC[-2]&lt;=R1C13,R1C13-RC[-2],R1C13&lt;RC[-2],0)" ) // Dias em atraso
+    aAdd( aRowDad, IIF(Empty((cTMP1)->E1_BAIXA),dDatabase-SToD((cTMP1)->E1_VENCREA),SToD((cTMP1)->E1_BAIXA)-SToD((cTMP1)->E1_VENCREA)))  //IIf(Empty((cTMP1)->E1_XDTREC),"","=IFS(RC[-1]&lt;&gt;&quot;&quot;,0,RC[-2]&lt;=RC[-1],RC[-1]-RC[-2],RC[-1]&lt;RC[-2],0)" )) // Dias em atraso
     aAdd( aRowDad, AllTrim((cTMP1)->A1_NREDUZ) ) // Cliente
 
     //aAdd( aRowDad, AllTrim((cTMP1)->A1_CGC) ) // Cliente
@@ -595,6 +606,7 @@ While (cTMP1)->(!EOF())
     aAdd( aRowDad, cRet2 ) //Tipo Parcela
     aAdd( aRowDad, cRet3 ) //Pagamento Atrelado Entreg
     aAdd( aRowDad, (cTMP1)->E1_NATUREZ ) //nature\z
+    aAdd( aRowDad, Posicione("SED",1,xFilial("SED")+(cTMP1)->E1_NATUREZ,"ED_DESCRIC") ) //nature\z
 
     aAdd( aStl, oSN01Dat ) // Data emissão
     aAdd( aStl, oSN01Dat ) // Data vencimento
@@ -626,6 +638,7 @@ While (cTMP1)->(!EOF())
     
     aAdd( aStl, oSN03Txt ) // hist
 
+    aAdd( aStl, oSN03Txt ) // hist
     aAdd( aStl, oSN03Txt ) // hist
     aAdd( aStl, oSN03Txt ) // hist
     aAdd( aStl, oSN03Txt ) // hist
@@ -700,8 +713,10 @@ If nTotLin > 0
     aAdd( aStl, oSN08Num ) // Multa
     aAdd( aStl, oSN08Num ) // Juros
     aAdd( aStl, oSN08Num ) // Total Recebido
-
-	oXML:AddRow( HeightRowTotal, aRowDad, aStl )
+    aAdd( aStl, oSN08Num ) // Total Recebido
+    aAdd( aStl, oSN08Num ) // Total Recebido
+	
+    oXML:AddRow( HeightRowTotal, aRowDad, aStl )
 
     nTotLin++
     oXML:SkipLine("12.75")
@@ -715,27 +730,27 @@ If nTotLin > 0
     oXml:setMerge(, , , 2)
 
     nTotLin++
-    oXML:AddRow( "15.00", {"à Vencer"                    , "", "", "=SUMIFS(R[-"+cValToChar(nTotLin)+"]C[6]:R[-5]C[6],R[-"+cValToChar(nTotLin)+"]C:R[-5]C,&quot;=0&quot;,R[-"+cValToChar(nTotLin)+"]C[7]:R[-5]C[7],&quot;=0&quot;)"      }, {oSN03Txt, oSN03Txt, oSN03Txt, oSN05Num} )
+    oXML:AddRow( "15.00", {"à Vencer"                    , "", "", "=SUMIFS(R[-"+cValToChar(nTotLin)+"]C[14]:R[-5]C[14],R[-"+cValToChar(nTotLin)+"]C:R[-5]C,&quot;<=0&quot,R[-"+cValToChar(nTotLin)+"]C[-1]:R[-5]C[-1],&quot;&quot)"      }, {oSN03Txt, oSN03Txt, oSN03Txt, oSN05Num} )
     oXml:setMerge(, , , 2)
 
     nTotLin++
-    oXML:AddRow( "15.00", {"Vencidos de 1 a 30 dias"     , "", "", "=SUMIFS(R[-"+cValToChar(nTotLin)+"]C[6]:R[-6]C[6],R[-"+cValToChar(nTotLin)+"]C:R[-6]C,&quot;&gt;0&quot;,R[-"+cValToChar(nTotLin)+"]C:R[-6]C,&quot;&lt;31&quot;)"     }, {oSN03Txt, oSN03Txt, oSN03Txt, oSN05Num} )
+    oXML:AddRow( "15.00", {"Vencidos de 1 a 30 dias"     , "", "", "=SUMIFS(R[-"+cValToChar(nTotLin)+"]C[14]:R[-6]C[14],R[-"+cValToChar(nTotLin)+"]C:R[-6]C,&quot;&gt;0&quot,R[-"+cValToChar(nTotLin)+"]C:R[-6]C,&quot;&lt;31&quot,R[-"+cValToChar(nTotLin)+"]C[-1]:R[-6]C[-1],&quot;&quot)"     }, {oSN03Txt, oSN03Txt, oSN03Txt, oSN05Num} )
     oXml:setMerge(, , , 2)
 
     nTotLin++
-    oXML:AddRow( "15.00", {"Vencidos de 31 a 60 dias"    , "", "", "=SUMIFS(R[-"+cValToChar(nTotLin)+"]C[6]:R[-7]C[6],R[-"+cValToChar(nTotLin)+"]C:R[-7]C,&quot;&gt;30&quot;,R[-"+cValToChar(nTotLin)+"]C:R[-7]C,&quot;&lt;61&quot;)"    }, {oSN03Txt, oSN03Txt, oSN03Txt, oSN05Num} )
+    oXML:AddRow( "15.00", {"Vencidos de 31 a 60 dias"    , "", "", "=SUMIFS(R[-"+cValToChar(nTotLin)+"]C[14]:R[-7]C[14],R[-"+cValToChar(nTotLin)+"]C:R[-7]C,&quot;&gt;30&quot,R[-"+cValToChar(nTotLin)+"]C:R[-7]C,&quot;&lt;61&quot,R[-"+cValToChar(nTotLin)+"]C[-1]:R[-7]C[-1],&quot;&quot)"    }, {oSN03Txt, oSN03Txt, oSN03Txt, oSN05Num} )
     oXml:setMerge(, , , 2)
 
     nTotLin++
-    oXML:AddRow( "15.00", {"Vencidos de 61 a 90 dias"    , "", "", "=SUMIFS(R[-"+cValToChar(nTotLin)+"]C[6]:R[-8]C[6],R[-"+cValToChar(nTotLin)+"]C:R[-8]C,&quot;&gt;60&quot;,R[-"+cValToChar(nTotLin)+"]C:R[-8]C,&quot;&lt;91&quot;)"    }, {oSN03Txt, oSN03Txt, oSN03Txt, oSN05Num} )
+    oXML:AddRow( "15.00", {"Vencidos de 61 a 90 dias"    , "", "", "=SUMIFS(R[-"+cValToChar(nTotLin)+"]C[14]:R[-8]C[14],R[-"+cValToChar(nTotLin)+"]C:R[-8]C,&quot;&gt;60&quot,R[-"+cValToChar(nTotLin)+"]C:R[-8]C,&quot;&lt;91&quot,R[-"+cValToChar(nTotLin)+"]C[-1]:R[-8]C[-1],&quot;&quot)"    }, {oSN03Txt, oSN03Txt, oSN03Txt, oSN05Num} )
     oXml:setMerge(, , , 2)
 
     nTotLin++
-    oXML:AddRow( "15.00", {"Vencidos de 91 a 180 dias"   , "", "", "=SUMIFS(R[-"+cValToChar(nTotLin)+"]C[6]:R[-9]C[6],R[-"+cValToChar(nTotLin)+"]C:R[-9]C,&quot;&gt;90&quot;,R[-"+cValToChar(nTotLin)+"]C:R[-9]C,&quot;&lt;181&quot;)"   }, {oSN03Txt, oSN03Txt, oSN03Txt, oSN05Num} )
+    oXML:AddRow( "15.00", {"Vencidos de 91 a 180 dias"   , "", "", "=SUMIFS(R[-"+cValToChar(nTotLin)+"]C[14]:R[-9]C[14],R[-"+cValToChar(nTotLin)+"]C:R[-9]C,&quot;&gt;90&quot,R[-"+cValToChar(nTotLin)+"]C:R[-9]C,&quot;&lt;181&quot,R[-"+cValToChar(nTotLin)+"]C[-1]:R[-9]C[-1],&quot;&quot)"   }, {oSN03Txt, oSN03Txt, oSN03Txt, oSN05Num} )
     oXml:setMerge(, , , 2)
 
     nTotLin++
-    oXML:AddRow( "15.00", {"Vencidos acima de 180 dias"  , "", "", "=SUMIFS(R[-"+cValToChar(nTotLin)+"]C[6]:R[-10]C[6],R[-"+cValToChar(nTotLin)+"]C:R[-10]C,&quot;&gt;180&quot;)"                                                        }, {oSN03Txt, oSN03Txt, oSN03Txt, oSN05Num} )
+    oXML:AddRow( "15.00", {"Vencidos acima de 180 dias"  , "", "", "=SUMIFS(R[-"+cValToChar(nTotLin)+"]C[14]:R[-10]C[14],R[-"+cValToChar(nTotLin)+"]C:R[-10]C,&quot;&gt;180&quot,R[-"+cValToChar(nTotLin)+"]C[-1]:R[-10]C[-1],&quot;&quot)"                                                        }, {oSN03Txt, oSN03Txt, oSN03Txt, oSN05Num} )
     oXml:setMerge(, , , 2)
 
     nTotLin++
@@ -850,15 +865,23 @@ If !Empty(cNfsIni) .Or. !Empty(cNfsFim)
 EndIf
 
 If !Empty(dNfsIni) .Or. !Empty(dNfsFim) 
-    cAuxIni := Transform(DToS(dNfsIni), "@R 9999-99-99") + "T00:00:00"
+    cAuxIni := IIF(!Empty(dNfsIni),Transform(DToS(dNfsIni), "@R 9999-99-99") + "T00:00:00","")
     cAuxFim := Transform(DToS(dNfsFim), "@R 9999-99-99") + "T99:99:99"
     cQuery += " 	AND SE1.E1_XDTREC BETWEEN '"+cAuxIni+"' AND '"+cAuxFim+"' "+ CRLF
+EndIf
+
+If (cTipoCR == "1") //Em aberto
+    cQuery += " 	AND SE1.E1_BAIXA = '' "+ CRLF
+    cQuery += " 	AND SE1.E1_SALDO > 0 "+ CRLF
+ElseIf (cTipoCR == "2") //Baixado
+    cQuery += " 	AND SE1.E1_BAIXA <> '' "+ CRLF
+    cQuery += " 	AND SE1.E1_SALDO < SE1.E1_VALOR "+ CRLF
 EndIf
 
 cQuery += " 	AND SE1.D_E_L_E_T_ = ' ' "+ CRLF
 
 cQuery += " ORDER BY "+ CRLF
-cQuery += " 	SE1.E1_VENCREA "+ CRLF
+cQuery += " 	SE1.E1_VENCREA ASC,SE1.E1_XNUMNFS ASC "+ CRLF
 
 // Salva query em disco para debug.
 If .T.//GetNewPar("SY_DEBUG", .T.)

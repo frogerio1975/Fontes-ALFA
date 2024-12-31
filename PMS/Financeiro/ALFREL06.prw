@@ -5,7 +5,10 @@
 // DEFINICAO DE TAMANHO DAS LINHAS DO RELATORIO
 #DEFINE HeightRowTitulo "38.25"
 
-#DEFINE HeightRowCab1 	"24.00"
+#DEFINE HeightRowCab1 	"44.00"  //Altura da coluna do texto explicativo para Fluxo Mensal
+#DEFINE HeightRowCab2 	"34.00"  //Altura da coluna do texto explicativo para Fluxo Semanal
+#DEFINE HeightRowCab3 	"24.00"  //Altura da coluna do texto explicativo para Fluxo Diário
+
 #DEFINE HeightRowItem1 	"11.25"
 #DEFINE HeightRowTotal  "12.00"
 
@@ -69,9 +72,11 @@ Private nFolder  := 1 // Pasta onde o relatorio sera gerado
 Private aEmpFat  := { "1=SYMM", "2=ERP", "3=GNP", "4=ALFA","5=Campinas","6=Colaboração" }
 Private aVisao   := { "1=Natureza", "2=Centro Custo" }
 Private aTipoRel := { "1=Mensal", "2=Anual" }
+Private aModelo  := { "1=Competencia", "2=Caixa" }
 Private cEmpFat  := "1"
 Private cVisao   := "1"
 Private cTipoRel := "1"
+Private cModelo  := "1"
 Private dPerIni  := CriaVar("E1_EMISSAO",.F.)
 Private dPerFim  := CriaVar("E1_EMISSAO",.F.)
 Private aPeriodo := {}
@@ -81,6 +86,7 @@ AADD( aBoxParam, {2,"Visão Por"       , cVisao    , aVisao  , 50, ".F.", .T.} )
 AADD( aBoxParam, {2,"Tipo Relatório"  , cTipoRel  , aTipoRel, 50, ".F.", .T.} )
 AADD( aBoxParam, {1,"Período DE"      , dPerIni   , "@!", "", "", "", 50, .T.} )
 AADD( aBoxParam, {1,"Período ATE"     , dPerFim   , "@!", "", "", "", 50, .T.} )
+AADD( aBoxParam, {2,"Modelo"          , cModelo  , aModelo, 80, ".F.", .T.} )
 
 If ParamBox(aBoxParam,"Parametros - Demonstrativo de Resultado",@aRetParam,,,,,,,,.F.)
 
@@ -89,6 +95,7 @@ If ParamBox(aBoxParam,"Parametros - Demonstrativo de Resultado",@aRetParam,,,,,,
     cTipoRel := aRetParam[3]
     dPerIni  := aRetParam[4]
     dPerFim  := aRetParam[5]
+    cModelo  := aRetParam[6]
 
     RetPeriodo(cTipoRel, dPerIni, dPerFim, @aPeriodo)
 
@@ -160,6 +167,7 @@ oXml:AddRow(, {"Visão Por"       , aVisao[Val(cVisao)]       }, aStl)
 oXml:AddRow(, {"Tipo Relatório"  , aTipoRel[Val(cTipoRel)]   }, aStl)
 oXml:AddRow(, {"Período DE"      , DToC(dPerIni)             }, aStl)
 oXml:AddRow(, {"Período ATE"     , DToC(dPerFim)             }, aStl)
+oXml:AddRow(, {"Modelo"          , aModelo[Val(cModelo)]     }, aStl)
 
 oXml:SkipLine(1)
 
