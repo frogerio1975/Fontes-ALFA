@@ -34,5 +34,6 @@ Aadd( aNewRot, { "Alt.Natureza Titulos"   , "U_SYALTFIN(4)"	        , 0 , 6} )
 
 
 Aadd( aNewRot, { "Bx.Lote Custon"   , "u_ALFPMS61()"	        , 0 , 6} )
+Aadd( aNewRot, { "Ajusta Impostos"      , "U_ALFIMPOS"	        , 0 , 6} )
 
 Return(aNewRot)

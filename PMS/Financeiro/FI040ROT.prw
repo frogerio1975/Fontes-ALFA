@@ -21,5 +21,6 @@ Aadd( aNewRot, { "Rel.Faturamento"      , "U_ALFREL03"	        , 0 , 6} )
 Aadd( aNewRot, { "Rel.Fluxo Caixa"      , "U_ALFREL05"	        , 0 , 6} )
 Aadd( aNewRot, { "Rel. DRE"             , "U_ALFREL06"	        , 0 , 6} )
 Aadd( aNewRot, { "Renovar Contrato"     , "U_ALFFIN01"	        , 0 , 6} )
+Aadd( aNewRot, { "Ajusta Impostos"      , "U_ALFIMPOS"	        , 0 , 6} )
 
 Return(aNewRot)

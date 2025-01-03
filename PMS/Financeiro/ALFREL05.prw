@@ -576,7 +576,7 @@ If nTotLin > 0
     aAdd( aStl, oSN11Txt ) // Descrição
     aAdd( aStl, oSN11Txt ) // Tipo
     
-    For nX := 1 To Len(aPeriodo)
+    For nX := 1 To Len(aPeriodo)+1
         aAdd( aRowDad, "=SUMIFS(R[-"+cValToChar(nTotLin)+"]C:R[-3]C,R[-"+cValToChar(nTotLin)+"]C[-"+cValToChar(nX)+"]:R[-3]C[-"+cValToChar(nX)+"],RC[-"+cValToChar(nX)+"])" )
         aAdd( aStl, oSN12Num )
     Next nX
@@ -601,7 +601,7 @@ If nTotLin > 0
     aAdd( aStl, oSN11Txt ) // Descrição
     aAdd( aStl, oSN11Txt ) // Tipo
     
-    For nX := 1 To Len(aPeriodo)
+    For nX := 1 To Len(aPeriodo)+1
         aAdd( aRowDad, "=SUMIFS(R[-"+cValToChar(nTotLin)+"]C:R[-4]C,R[-"+cValToChar(nTotLin)+"]C[-"+cValToChar(nX)+"]:R[-4]C[-"+cValToChar(nX)+"],RC[-"+cValToChar(nX)+"])" )
         aAdd( aStl, oSN12Num )
     Next nX
@@ -626,7 +626,7 @@ If nTotLin > 0
     aAdd( aStl, oSN09Txt ) // Descrição
     aAdd( aStl, oSN09Txt ) // Tipo
     
-    For nX := 1 To Len(aPeriodo)
+    For nX := 1 To Len(aPeriodo)+1
         aAdd( aRowDad, "=SUM(R[-3]C:R[-1]C)" )
         aAdd( aStl, oSN10Num )
     Next nX
