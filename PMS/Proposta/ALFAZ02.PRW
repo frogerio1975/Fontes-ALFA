@@ -755,6 +755,7 @@ IF ( nOpc == 3 .Or. nOpc == 4 .Or. nOpc == 6 .Or. nOpc == 7 .Or. nOpc == 14 )
 	Aadd(aAlterZ05,"Z05_OBSERV")		
 	
 	Aadd(aAlterZ03,"Z03_ESCOPO")
+	Aadd(aAlterZ03,"Z03_DIAS")
 	Aadd(aAlterZ03,"Z03_HORAS")
 	Aadd(aAlterZ03,"Z03_SUBMEN")
 	Aadd(aAlterZ03,"Z03_PROCES")
@@ -940,6 +941,7 @@ IF ( nOpc == 3 .Or. nOpc == 4 .Or. nOpc == 6 .Or. nOpc == 7 .Or. nOpc == 14 )
 		Aadd(aAlterZ05,"Z05_VLHRDE")
 		Aadd(aAlterZ05,"Z05_QUANT")
 		Aadd(aAlterZ03,"Z03_HORAS")
+		Aadd(aAlterZ03,"Z03_DIAS")
 		Aadd(aAlterZ05,"Z05_PERDES")		
 		Aadd(aAlterZ05,"Z05_VALDES")		
 		Aadd(aAlterZ03,"Z03_MEMO")
@@ -968,6 +970,7 @@ IF ( nOpc == 3 .Or. nOpc == 4 .Or. nOpc == 6 .Or. nOpc == 7 .Or. nOpc == 14 )
 		Aadd(aAlterZ05,"Z05_VALDES")		
 		Aadd(aAlterZ03,"Z03_ESCOPO")
 		Aadd(aAlterZ03,"Z03_HORAS")
+		Aadd(aAlterZ03,"Z03_DIAS")
 		Aadd(aAlterZ03,"Z03_ORDEM")	
 		Aadd(aAlterZ03,"Z03_MEMO")
 
@@ -4031,8 +4034,8 @@ If Type("oDetalhe") <> "U" .and. Type('oEscopo') <> 'U'
 	If (AllTrim(cModulo) $ (cProdGP + "/" + cProdGPFS))
 		nPos:= aScan(oEscopo:aCols,{|x| AllTrim(x[nPID]) == cID})
 		If (nPos > 0)
-			aColsZ03[Len(aColsZ03),nPHoras]:= oEscopo:aCols[nPos,nPHorasa]
-			aColsZ03[Len(aColsZ03),nPDias] := oEscopo:aCols[nPos,nPHorasa]/nHorasDia
+			aColsZ03[Len(aColsZ03),nPHoras]:= nHorasDia * aColsZ03[Len(aColsZ03),nPDias]
+			//aColsZ03[Len(aColsZ03),nPDias] := oEscopo:aCols[nPos,nPHorasa]/nHorasDia
 		EndIf
 	EndIf
 

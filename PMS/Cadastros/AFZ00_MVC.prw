@@ -455,7 +455,7 @@ Local nHorasZ17:= 0
 Local nLinZ18  := 0
 Local oGridZ01
 Local oGridZ18
-Local nDefHors := SuperGetMv("AF_DEFHORA",.F. , 8 )
+Local nDefHors := GETMV("MV_AFHRDIA",.F. , 10 )
 
 IF 	(oView:GetModel("Z01DETAIL") <> Nil) .And. ;
 	(oView:GetModel("Z18DETAIL") <> Nil)
@@ -530,7 +530,7 @@ Local nLinZ17  := 0
 Local nLinZ18  := 0
 Local nOpcao   := oView:GetModel():GetOperation()
 Local cEscopo  := ""
-Local nDefHors := SuperGetMv("AF_DEFHORA",.F. , 8 )
+Local nDefHors := SuperGetMv("MV_AFHRDIA",.F. , 10 )
 Local cProdGP  := GetNewPar("MV_AFGP","SAP-I001") //Produto do Gerente de Projeto SAP
 Local cProdGPFS:= GetNewPar("MV_AFGPFS","SAP-I003") //Produto do Gerente de Desenvolvimento SAP
 
