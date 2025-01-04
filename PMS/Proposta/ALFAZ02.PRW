@@ -6092,9 +6092,9 @@ Local aRetSx3  := {}
 Local aHdPrd2  := { ;    
 					{ "Qtd.Minima"		  , "Z24_QTDMIN" ,PesqPict("Z24","Z24_QTDMIN")   ,						,TAMSX3("Z24_QTDMIN")[2]    ,,"AllwaysTrue()"  ,"N",,},;
 					{ "Qtd.Maxima"        , "Z24_QTDMAX" ,PesqPict("Z24","Z24_QTDMAX")   ,						,TAMSX3("Z24_QTDMAX")[2]   ,,"AllwaysTrue()"  ,"N",,},;
-					{ "Preè”ž Tabela"      , "Z24_PRCTAB" ,PesqPict("Z24","Z24_PRCTAB")   ,						,TAMSX3("Z24_PRCTAB")[2] ,,"AllwaysTrue()"  ,"N",,},;
+					{ "Preço Tabela"      , "Z24_PRCTAB" ,PesqPict("Z24","Z24_PRCTAB")   ,						,TAMSX3("Z24_PRCTAB")[2] ,,"AllwaysTrue()"  ,"N",,},;
 					{ "Desconto (%)"      , "Z24_DESCON" ,PesqPict("Z24","Z24_DESCON")   ,						,TAMSX3("Z24_DESCON")[2] ,,"AllwaysTrue()"  ,"N",,},;
-				    { "Preè”ž de Venda"    , "Z24_PRCVEN" ,PesqPict("Z24","Z24_PRCVEN")   ,						,TAMSX3("Z24_PRCVEN")[2] ,,"AllwaysTrue()"  ,"N",,} }
+				    { "Preço de Venda"    , "Z24_PRCVEN" ,PesqPict("Z24","Z24_PRCVEN")   ,						,TAMSX3("Z24_PRCVEN")[2] ,,"AllwaysTrue()"  ,"N",,} }
 Local nModulo  := 0
 Local nX       := 0
 Local nY       := 0
@@ -6364,11 +6364,11 @@ If lLicenca
 		cQuery+= " AND Z00.Z00_TPPROD IN ('2','3') "
 	EndIf	
 Else
-	If !Empty(M->Z02_OFERTA)
-		cQuery+= " AND Z00.Z00_TPMOD = '2' "
-	Else
+	//If !Empty(M->Z02_OFERTA)
+	//	cQuery+= " AND Z00.Z00_TPMOD = '2' "
+	//Else
 		cQuery+= " AND Z00.Z00_TPMOD = '1' "
-	EndIf	
+	//EndIf	
 
 	//Service Desk SAP
 	If lSD .And. lSAP

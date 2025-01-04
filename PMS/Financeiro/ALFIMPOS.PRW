@@ -22,18 +22,21 @@ Local nVlr1     := 0
 Private aEmpFat  := { "1=ALFA", "2=MOOVE", "3=GNP", "4=ALFA","5=Campinas","6=Colaboração","0-TODAS" }
 Private aTipo    := { "1=Contas a Receber", "2=Contas a Pagar" }
 Private cTipo    := ""
+Private cProposta:= CriaVar("E1_PROPOS")
 Private cEmpFat  := "1"
 Private cNaturez := CriaVar("E1_NATUREZ")
 
 AADD( aBoxParam, {2,"Empresa"         , cEmpFat   , aEmpFat , 80, ".F.", .T.} )
 AADD( aBoxParam, {1,"Natureza"        , cNaturez  , "@!", "", "", "", 50, .T.} )
 AADD( aBoxParam, {2,"Tipo"            , cTipo     , aTipo, 80, ".F.", .T.} )
+AADD( aBoxParam, {1,"Proposta"        , cProposta , "@!", "", "", "", 50, .T.} )
 
 If ParamBox(aBoxParam,"Parametros - Ajusta Imposto",@aRetParam,,,,,,,,.F.)
 
     cEmpFat  := aRetParam[1]
     cNaturez := aRetParam[2]
     cTipo    := aRetParam[3]
+    cProposta:= aRetParam[4]
 
     cTMP1 := LoadDados() 
 
@@ -131,6 +134,7 @@ If (cTipo == "1")
     cQuery += " 	AND SE1.E1_VALOR = SE1.E1_SALDO " + CRLF
     cQuery += " 	AND (SE1.E1_FATURA = ' ' OR E1_FATURA = 'NOTFAT')"+ CRLF
     cQuery += " 	AND SE1.E1_NATUREZ =  '" + cNaturez + "' " + CRLF
+    cQuery += " 	AND SE1.E1_PROPOS =  '" + cProposta + "' " + CRLF
     cQuery += " 	AND SE1.D_E_L_E_T_ = ' ' "+ CRLF
 Else
     cQuery += " 	SE2.E2_FILIAL = '"+xFilial("SE2")+"' "+ CRLF

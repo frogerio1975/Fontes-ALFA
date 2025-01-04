@@ -21,7 +21,10 @@
 		},
 		{
 			"label": "sigafrt"
+		},
+		{
+			"label": "sigacfg"
 		}
 	],
-	"lastProgramExecuted": "sigafrt"
+	"lastProgramExecuted": "sigacfg"
 }
