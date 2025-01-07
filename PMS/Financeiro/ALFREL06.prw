@@ -69,7 +69,7 @@ Local oXML
 Private nFolder  := 1 // Pasta onde o relatorio sera gerado
 
 // Parametros
-Private aEmpFat  := { "1=SYMM", "2=ERP", "3=GNP", "4=ALFA","5=Campinas","6=Colaboração" }
+Private aEmpFat  := { "1=ALFA(07)", "2=Moove", "3=GNP", "4=ALFA(24)","5=Campinas","6=Colaboração" }
 Private aVisao   := { "1=Natureza", "2=Centro Custo" }
 Private aTipoRel := { "1=Mensal", "2=Anual" }
 Private aModelo  := { "1=Competencia", "2=Caixa" }
@@ -101,8 +101,8 @@ If ParamBox(aBoxParam,"Parametros - Demonstrativo de Resultado",@aRetParam,,,,,,
 
     If lRetorno
         oXML := ExcelXML():New()
-        FwMsgRun( ,{|| oXML := GeraRelatorio(oXML) 	},, "Aguarde. Gerando relatório..." )
-        FwMsgRun( ,{|| oXML	:= GeraFiltro(oXML) 	},, "Aguarde. Gerando aba indicações de filtros..." )
+        FwMsgRun( ,{|oMsg| oXML := GeraRelatorio(oMsg,oXML) 	},, "Aguarde. Gerando relatório..." )
+        FwMsgRun( ,{|oMsg| oXML	:= GeraFiltro(oMsg,oXML) 	},, "Aguarde. Gerando aba indicações de filtros..." )
             
         If oXML <> NIL
             oXml:setFolder(2)
@@ -123,7 +123,7 @@ Cria aba descrevendo filtros no relatorio.
 @version 1.0
 /*/
 //-------------------------------------------------------------------
-Static Function GeraFiltro(oXml)
+Static Function GeraFiltro(oMsg,oXml)
 
 Local oStlTitFil
 Local oStlTitPar
@@ -182,7 +182,7 @@ Gera relatorio do tipo categorias ou filiais.
 @version 1.0
 /*/
 //-------------------------------------------------------------------
-Static Function GeraRelatorio(oXml)
+Static Function GeraRelatorio(oMsg,oXml)
 
 //variaveis auxiliares
 Local aColSize	:= {}
@@ -191,6 +191,8 @@ Local aStl		:= {}
 Local nTotLin   := 0
 Local cPicture  := IIF(cVisao=="1", PesqPict("SED", "ED_CODIGO"), PesqPict("CTT", "CTT_CUSTO"))
 Local nX        := 0
+Local nReg      := 0
+Local nTotReg   := 0
 
 //variaveis de estilo
 Private oStlTit
@@ -435,7 +437,13 @@ oXML:AddRow(HeightRowCab1, aCabDad, aCabStl)
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 
+nTotReg:= RecCount()//(cTMP1)->(RECCOUNT())
+nReg   := 0
 While (cTMP1)->(!EOF())
+
+    nReg++
+    oMsg:cCaption:= "Processando Registro " + cValToChar(nReg) + " de " + cValToChar(nTotReg) 
+    oMsg:Refresh()
 
 	// Meta
 	aRowDad	:= {}
@@ -451,11 +459,11 @@ While (cTMP1)->(!EOF())
                 aAdd( aStl, oSN03Txt ) // Código
                 aAdd( aStl, oSN03Txt ) // Descrição
                 aAdd( aStl, oSN03Txt ) // Tipo
-            CASE Len(AllTrim((cTMP1)->CODIGO)) == 5
+            CASE Len(AllTrim((cTMP1)->CODIGO)) == 4
                 aAdd( aStl, oSN03Txt ) // Código
                 aAdd( aStl, oSN05Txt ) // Descrição
                 aAdd( aStl, oSN03Txt ) // Tipo
-            CASE Len(AllTrim((cTMP1)->CODIGO)) == 7
+            CASE Len(AllTrim((cTMP1)->CODIGO)) == 6
                 aAdd( aStl, oSN04Txt ) // Código
                 aAdd( aStl, oSN06Txt ) // Descrição
                 aAdd( aStl, oSN04Txt ) // Tipo
@@ -621,14 +629,6 @@ If cVisao == "1"
 
     cQuery += " FROM "+RetSqlName("SE1")+" SE1 (NOLOCK) "+ CRLF
 
-    cQuery += " LEFT JOIN "+RetSqlName("SEV")+" SEV (NOLOCK) "+ CRLF
-    cQuery += " 	ON SEV.EV_FILIAL = SE1.E1_FILIAL "+ CRLF
-    cQuery += " 	AND SEV.EV_PREFIXO = SE1.E1_PREFIXO "+ CRLF
-    cQuery += " 	AND SEV.EV_NUM = SE1.E1_NUM "+ CRLF
-    cQuery += " 	AND SEV.EV_PARCELA = SE1.E1_PARCELA "+ CRLF
-    cQuery += " 	AND SEV.EV_TIPO = SE1.E1_TIPO "+ CRLF
-    cQuery += " 	AND SEV.D_E_L_E_T_ = ' ' "+ CRLF
-
     cQuery += " INNER JOIN "+RetSqlName("SED")+" SED (NOLOCK) "+ CRLF
     cQuery += " 	ON SED.ED_FILIAL = '"+xFilial("SED")+"' "+ CRLF
     cQuery += " 	AND SED.ED_CODIGO = E1_NATUREZ "+ CRLF
@@ -642,7 +642,9 @@ If cVisao == "1"
     cQuery += " 	AND SE1.E1_XDTREC BETWEEN '"+cAuxIni+"' AND '"+cAuxFim+"' "+ CRLF
     cQuery += " 	AND SE1.E1_XNUMNFS <> ' ' "+ CRLF
     cQuery += " 	AND SE1.D_E_L_E_T_ = ' ' "+ CRLF
-
+    cQuery += " 	AND SE1.E1_FATURA IN ('','NOTFAT') "+ CRLF
+    cQuery += " 	AND SE1.E1_PORTADO <> '999' "+ CRLF
+    cQuery += " 	AND SE1.E1_CLIENTE NOT IN ('000080','022441') "+ CRLF
     cQuery += " GROUP BY "+ CRLF
     cQuery += " 	SED.ED_CODIGO "+ CRLF
     cQuery += " 	,SED.ED_DESCRIC "+ CRLF
@@ -664,14 +666,6 @@ If cVisao == "1"
     Next nX
 
     cQuery += " FROM "+RetSqlName("SE2")+" SE2 (NOLOCK) "+ CRLF
-
-    cQuery += " LEFT JOIN "+RetSqlName("SEV")+" SEV (NOLOCK) "+ CRLF
-    cQuery += " 	ON SEV.EV_FILIAL = SE2.E2_FILIAL "+ CRLF
-    cQuery += " 	AND SEV.EV_PREFIXO = SE2.E2_PREFIXO "+ CRLF
-    cQuery += " 	AND SEV.EV_NUM = SE2.E2_NUM "+ CRLF
-    cQuery += " 	AND SEV.EV_PARCELA = SE2.E2_PARCELA "+ CRLF
-    cQuery += " 	AND SEV.EV_TIPO = SE2.E2_TIPO "+ CRLF
-    cQuery += " 	AND SEV.D_E_L_E_T_ = ' ' "+ CRLF
 
     cQuery += " INNER JOIN "+RetSqlName("SED")+" SED (NOLOCK) "+ CRLF
     cQuery += " 	ON SED.ED_FILIAL = '"+xFilial("SED")+"' "+ CRLF
@@ -754,7 +748,7 @@ Else
         cCampo  := "CPO_" + StrZero(nX,4)
         cPerIni := Transform(aPeriodo[nX][1][1], "@R 9999-99-99") + "T00:00:00"
         cPerFim := Transform(aPeriodo[nX][1][2], "@R 9999-99-99") + "T99:99:99"
-        cQuery += " 	,SUM(CASE WHEN SE1.E1_XDTREC BETWEEN '"+cPerIni+"' AND '"+cPerFim+"' THEN E1_VALOR ELSE 0 END) AS "+cCampo+" "+ CRLF
+        cQuery += " 	,SUM(CASE WHEN SE1.E1_XDTREC BETWEEN '"+cPerIni+"' AND '"+cPerFim+"' THEN EV_VALOR ELSE 0 END) AS "+cCampo+" "+ CRLF
     Next nX
 
     cQuery += " FROM "+RetSqlName("SE1")+" SE1 (NOLOCK) "+ CRLF
@@ -789,7 +783,9 @@ Else
     cQuery += " 	AND SE1.E1_XDTREC BETWEEN '"+cAuxIni+"' AND '"+cAuxFim+"' "+ CRLF
     cQuery += " 	AND SE1.E1_XNUMNFS <> ' ' "+ CRLF
     cQuery += " 	AND SE1.D_E_L_E_T_ = ' ' "+ CRLF
-
+    cQuery += " 	AND SE1.E1_FATURA IN ('','NOTFAT') "+ CRLF
+    cQuery += " 	AND SE1.E1_PORTADO <> '999' "+ CRLF
+    cQuery += " 	AND SE1.E1_CLIENTE NOT IN ('000080','022441') "+ CRLF
     cQuery += " GROUP BY "+ CRLF
     cQuery += " 	CTT.CTT_CUSTO "+ CRLF
     cQuery += " 	,CTT.CTT_DESC01 "+ CRLF

@@ -71,7 +71,7 @@ Local oXML
 Private nFolder  := 1 // Pasta onde o relatorio sera gerado
 
 // Parametros
-Private aEmpFat  := { "1=ALFA", "2=MOOVE", "3=GNP", "4=ALFA","5=Campinas","6=Colaboração","0-TODAS" }
+Private aEmpFat  := { "1=ALFA(07)", "2=MOOVE", "3=GNP", "4=ALFA(24)","5=Campinas","6=Colaboração","0-TODAS" }
 Private aTipoRel := { "1=Diario", "2=Semanal", "3=Mensal" }
 Private cEmpFat  := "1"
 Private cTipoRel := "3"
@@ -99,8 +99,8 @@ If ParamBox(aBoxParam,"Parametros - Fluxo de Caixa",@aRetParam,,,,,,,,.F.)
 
     If lRetorno
         oXML := ExcelXML():New()
-        FwMsgRun( ,{|| oXML := GeraRelatorio(oXML) 	},, "Aguarde. Gerando relatório..." )
-        FwMsgRun( ,{|| oXML	:= GeraFiltro(oXML) 	},, "Aguarde. Gerando aba indicações de filtros..." )
+        FwMsgRun( ,{|oMsg| oXML := GeraRelatorio(oMsg,oXML) 	},, "Aguarde. Gerando relatório..." )
+        FwMsgRun( ,{|oMsg| oXML	:= GeraFiltro(oMsg,oXML) 	},, "Aguarde. Gerando aba indicações de filtros..." )
             
         If oXML <> NIL
             oXml:setFolder(2)
@@ -121,7 +121,7 @@ Cria aba descrevendo filtros no relatorio.
 @version 1.0
 /*/
 //-------------------------------------------------------------------
-Static Function GeraFiltro(oXml)
+Static Function GeraFiltro(oMsg,oXml)
 
 Local oStlTitFil
 Local oStlTitPar
@@ -179,7 +179,7 @@ Gera relatorio do tipo categorias ou filiais.
 @version 1.0
 /*/
 //-------------------------------------------------------------------
-Static Function GeraRelatorio(oXml)
+Static Function GeraRelatorio(oMsg,oXml)
 
 //variaveis auxiliares
 Local aColSize	:= {}
@@ -191,6 +191,8 @@ Local nX        := 0
 Local nAltLin   := 0
 Local nPeriodos := 0
 Local nTotal    := 0
+Local nReg      := 0
+Local nTotReg   :=0
 
 //variaveis de estilo
 Private oStlTit
@@ -467,7 +469,13 @@ oXML:AddRow(HeightRowCab1, aCabDad, aCabStl)
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 
+nTotReg:= RecCount()//(cTMP1)->(RECCOUNT())
+nReg   := 0
 While (cTMP1)->(!EOF())
+
+    nReg++
+    oMsg:cCaption:= "Processando Registro " + cValToChar(nReg) + " de " + cValToChar(nTotReg) 
+    oMsg:Refresh()
 
 	// Meta
 	aRowDad	:= {}
@@ -741,9 +749,10 @@ cQuery += " 	SE1.E1_FILIAL = '"+xFilial("SE1")+"' "+ CRLF
 cQuery += " 	AND SE1.E1_EMPFAT = '"+cEmpFat+"' "+ CRLF
 cQuery += " 	AND SE1.E1_TIPO = 'DP' "+ CRLF
 cQuery += " 	AND SE1.E1_BAIXA <> ' ' "+ CRLF
-cQuery += " 	AND (SE1.E1_FATURA = ' ' OR E1_FATURA = 'NOTFAT')"+ CRLF
 cQuery += " 	AND SE1.D_E_L_E_T_ = ' ' "+ CRLF
-
+cQuery += " 	AND SE1.E1_FATURA IN ('','NOTFAT') "+ CRLF
+cQuery += " 	AND SE1.E1_PORTADO <> '999' "+ CRLF
+cQuery += " 	AND SE1.E1_CLIENTE NOT IN ('000080','022441') "+ CRLF
 cQuery += " GROUP BY "+ CRLF
 cQuery += " 	SED.ED_CODIGO "+ CRLF
 cQuery += " 	,SED.ED_DESCRIC "+ CRLF
@@ -783,9 +792,10 @@ cQuery += " 	AND SE1.E1_EMPFAT = '"+cEmpFat+"' "+ CRLF
 cQuery += " 	AND SE1.E1_TIPO = 'DP' "+ CRLF
 cQuery += " 	AND SE1.E1_VENCREA BETWEEN '"+aPeriodo[1][1][1]+"' AND '"+ATail(aPeriodo)[1][2]+"' "+ CRLF
 cQuery += " 	AND SE1.E1_BAIXA = ' ' "+ CRLF
-cQuery += " 	AND (SE1.E1_FATURA = ' ' OR E1_FATURA = 'NOTFAT')"+ CRLF
 cQuery += " 	AND SE1.D_E_L_E_T_ = ' ' "+ CRLF
-
+cQuery += " 	AND SE1.E1_FATURA IN ('','NOTFAT') "+ CRLF
+cQuery += " 	AND SE1.E1_PORTADO <> '999' "+ CRLF
+cQuery += " 	AND SE1.E1_CLIENTE NOT IN ('000080','022441') "+ CRLF
 cQuery += " GROUP BY "+ CRLF
 cQuery += " 	SED.ED_CODIGO "+ CRLF
 cQuery += " 	,SED.ED_DESCRIC "+ CRLF
@@ -985,9 +995,10 @@ cQuery += " 	SE1.E1_FILIAL = '"+xFilial("SE1")+"' "+ CRLF
 cQuery += " 	AND SE1.E1_EMPFAT = '"+cEmpFat+"' "+ CRLF
 cQuery += " 	AND SE1.E1_TIPO = 'DP' "+ CRLF
 cQuery += " 	AND SE1.E1_VENCREA BETWEEN '"+aPeriodo[1][1][1]+"' AND '"+ATail(aPeriodo)[1][2]+"' "+ CRLF
-cQuery += " 	AND (SE1.E1_FATURA = ' ' OR E1_FATURA = 'NOTFAT')"+ CRLF
 cQuery += " 	AND SE1.D_E_L_E_T_ = ' ' "+ CRLF
-
+cQuery += " 	AND SE1.E1_FATURA IN ('','NOTFAT') "+ CRLF
+cQuery += " 	AND SE1.E1_PORTADO <> '999' "+ CRLF
+cQuery += " 	AND SE1.E1_CLIENTE NOT IN ('000080','022441') "+ CRLF
 cQuery += " GROUP BY "+ CRLF
 cQuery += " 	SED.ED_CODIGO "+ CRLF
 cQuery += " 	,SED.ED_DESCRIC "+ CRLF
@@ -1142,9 +1153,10 @@ cQuery += " 	SE1.E1_FILIAL = '"+xFilial("SE1")+"' "+ CRLF
 cQuery += " 	AND SE1.E1_EMPFAT = '"+cEmpFat+"' "+ CRLF
 cQuery += " 	AND SE1.E1_TIPO = 'DP' "+ CRLF
 cQuery += " 	AND SE1.E1_BAIXA <> ' ' "+ CRLF
-cQuery += " 	AND (SE1.E1_FATURA = ' ' OR E1_FATURA = 'NOTFAT')"+ CRLF
 cQuery += " 	AND SE1.D_E_L_E_T_ = ' ' "+ CRLF
-
+cQuery += " 	AND SE1.E1_FATURA IN ('','NOTFAT') "+ CRLF
+cQuery += " 	AND SE1.E1_PORTADO <> '999' "+ CRLF
+cQuery += " 	AND SE1.E1_CLIENTE NOT IN ('000080','022441') "+ CRLF
 cQuery += " GROUP BY "+ CRLF
 cQuery += " 	SED.ED_CODIGO "+ CRLF
 cQuery += " 	,SED.ED_DESCRIC "+ CRLF

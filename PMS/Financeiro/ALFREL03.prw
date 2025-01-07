@@ -63,7 +63,7 @@ Local oXML
 Private nFolder  := 1 // Pasta onde o relatorio sera gerado
 
 // Parametros
-Private aEmpFat  := { "1=SYMM", "2=ERP", "3=GNP", "4=ALFA","5=Campinas","6=Colaboração" }
+Private aEmpFat  := { "1=ALFA(07)", "2=Moove", "3=GNP", "4=ALFA(24)","5=Campinas","6=Colaboração" }
 Private cEmpFat  := "1"
 Private cPrefixo := CriaVar("E1_PREFIXO",.F.)
 Private cNumIni  := CriaVar("E1_NUM",.F.)
@@ -101,8 +101,8 @@ If ParamBox(aBoxParam,"Parametros - Faturamento",@aRetParam,,,,,,,,.F.)
 
     If lRetorno
         oXML := ExcelXML():New()
-        FwMsgRun( ,{|| oXML := GeraRelatorio(oXML) 	},, "Aguarde. Gerando relatório..." )
-        FwMsgRun( ,{|| oXML	:= GeraFiltro(oXML) 	},, "Aguarde. Gerando aba indicações de filtros..." )
+        FwMsgRun( ,{|oMsg| oXML := GeraRelatorio(oMsg,oXML) 	},, "Aguarde. Gerando relatório..." )
+        FwMsgRun( ,{|oMsg| oXML	:= GeraFiltro(oMsg,oXML) 	},, "Aguarde. Gerando aba indicações de filtros..." )
             
         If oXML <> NIL
             oXml:setFolder(2)
@@ -123,7 +123,7 @@ Cria aba descrevendo filtros no relatorio.
 @version 1.0
 /*/
 //-------------------------------------------------------------------
-Static Function GeraFiltro(oXml)
+Static Function GeraFiltro(oMsg,oXml)
 
 Local oStlTitFil
 Local oStlTitPar
@@ -186,7 +186,7 @@ Gera relatorio do tipo categorias ou filiais.
 @version 1.0
 /*/
 //-------------------------------------------------------------------
-Static Function GeraRelatorio(oXml)
+Static Function GeraRelatorio(oMsg,oXml)
 
 //variaveis auxiliares
 Local aColSize	:= {}
@@ -195,6 +195,8 @@ Local aStl		:= {}
 Local nTotLin   := 0
 Local cPictNat  := PesqPict("SED", "ED_CODIGO")
 Local cPictCC   := PesqPict("CTT", "CTT_CUSTO")
+Local nReg      := 0
+Local nTotReg   := 0
 
 //variaveis de estilo
 Private oStlTit
@@ -452,7 +454,13 @@ oXML:AddRow(HeightRowCab1, aCabDad, aCabStl)
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 
+nTotReg:= RecCount()//(cTMP1)->(RECCOUNT())
+nReg   := 0
 While (cTMP1)->(!EOF())
+
+    nReg++
+    oMsg:cCaption:= "Processando Registro " + cValToChar(nReg) + " de " + cValToChar(nTotReg) 
+    oMsg:Refresh()
 
 	// Meta
 	aRowDad	:= {}
@@ -699,6 +707,9 @@ cQuery += " 	SE1.E1_FILIAL = '"+xFilial("SE1")+"' "+ CRLF
 cQuery += " 	AND SE1.E1_EMPFAT = '"+cEmpFat+"' "+ CRLF
 cQuery += " 	AND SE1.E1_TIPO = 'DP' "+ CRLF
 cQuery += " 	AND SE1.E1_XNUMNFS <> ' ' "+ CRLF
+cQuery += " 	AND SE1.E1_FATURA IN ('','NOTFAT') "+ CRLF
+cQuery += " 	AND SE1.E1_PORTADO <> '999' "+ CRLF
+cQuery += " 	AND SE1.E1_CLIENTE NOT IN ('000080','022441') "+ CRLF
 
 If !Empty(cPrefixo)
     cQuery += " 	AND SE1.E1_PREFIXO = '"+cPrefixo+"' "+ CRLF

@@ -63,7 +63,7 @@ Local oXML
 Private nFolder  := 1 // Pasta onde o relatorio sera gerado
 
 // Parametros
-Private aEmpFat  := { "1=SYMM", "2=ERP", "3=GNP", "4=ALFA","5=Campinas","6=Colaboração" }
+Private aEmpFat  := { "1=ALFA(07)", "2=Moove", "3=GNP", "4=ALFA(24)","5=Campinas","6=Colaboração" }
 Private cEmpFat  := "1"
 Private cPrefixo := CriaVar("E1_PREFIXO",.F.)
 Private cTipoE1  := "DP"
@@ -132,8 +132,8 @@ If ParamBox(aBoxParam,"Parametros - Contas a Receber",@aRetParam,,,,,,,,.F.)
 
     If lRetorno
         oXML := ExcelXML():New()
-        FwMsgRun( ,{|| oXML := GeraRelatorio(oXML) 	},, "Aguarde. Gerando relatório..." )
-        FwMsgRun( ,{|| oXML	:= GeraFiltro(oXML) 	},, "Aguarde. Gerando aba indicações de filtros..." )
+        FwMsgRun( ,{|oMsg| oXML := GeraRelatorio(oMsg,oXML) 	},, "Aguarde. Gerando relatório..." )
+        FwMsgRun( ,{|oMsg| oXML	:= GeraFiltro(oMsg,oXML) 	},, "Aguarde. Gerando aba indicações de filtros..." )
             
         If oXML <> NIL
             oXml:setFolder(2)
@@ -154,7 +154,7 @@ Cria aba descrevendo filtros no relatorio.
 @version 1.0
 /*/
 //-------------------------------------------------------------------
-Static Function GeraFiltro(oXml)
+Static Function GeraFiltro(oMsg,oXml)
 
 Local oStlTitFil
 Local oStlTitPar
@@ -225,13 +225,15 @@ Gera relatorio do tipo categorias ou filiais.
 @version 1.0
 /*/
 //-------------------------------------------------------------------
-Static Function GeraRelatorio(oXml)
+Static Function GeraRelatorio(oMsg,oXml)
 
 //variaveis auxiliares
 Local aColSize	:= {}
 Local aRowDad	:= {}
 Local aStl		:= {}
 Local nTotLin   := 0
+Local nReg      := 0
+Local nTotReg   := 0
 
 local aTpSrvSx3 := RetSX3Box(GetSX3Cache("E1_XTPSRV", "X3_CBOX"),,,1)
 local aTpParSx3 := RetSX3Box(GetSX3Cache("E1_XTPPARC", "X3_CBOX"),,,1)
@@ -443,7 +445,7 @@ aAdd( aCabDad, "Data vencimento" ) // Data vencimento
 aAdd( aCabDad, "Data pagamento" ) // Data pagamento
 aAdd( aCabDad, "Dias em atraso" ) // Dias em atraso
 aAdd( aCabDad, "Cliente" ) // Cliente
-aAdd( aCabDad, "CGC" ) // CGC
+aAdd( aCabDad, "CNPJ" ) // CGC
 aAdd( aCabDad, "No Nota Fiscal" ) // No Nota Fiscal
 aAdd( aCabDad, "Link Nota Fiscal" ) // LINK
 aAdd( aCabDad, "Prefixo" ) // Prefixo
@@ -514,8 +516,13 @@ oXML:AddRow(HeightRowCab1, aCabDad, aCabStl)
 //oXML:SkipLine("12.75",oSSkipLine)
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-
+nTotReg:= RecCount()//(cTMP1)->(RECCOUNT())
+nReg   := 0
 While (cTMP1)->(!EOF())
+
+    nReg++
+    oMsg:cCaption:= "Processando Registro " + cValToChar(nReg) + " de " + cValToChar(nTotReg) 
+    oMsg:Refresh()
 
 	// Meta
 	aRowDad	:= {}
@@ -829,8 +836,9 @@ cQuery += " 	AND SA1.D_E_L_E_T_ = ' ' "+ CRLF
 cQuery += " WHERE "+ CRLF
 cQuery += " 	SE1.E1_FILIAL = '"+xFilial("SE1")+"' "+ CRLF
 cQuery += " 	AND SE1.E1_EMPFAT = '"+cEmpFat+"' "+ CRLF
-//cQuery += " 	AND SE1.E1_FATURA = ' ' "+ CRLF
-cQuery += " 	AND (SE1.E1_FATURA = ' ' OR E1_FATURA = 'NOTFAT')"+ CRLF
+cQuery += " 	AND SE1.E1_FATURA IN ('','NOTFAT') "+ CRLF
+cQuery += " 	AND SE1.E1_PORTADO <> '999' "+ CRLF
+cQuery += " 	AND SE1.E1_CLIENTE NOT IN ('000080','022441') "+ CRLF
 
 If !Empty(cPrefixo)
     cQuery += " 	AND SE1.E1_PREFIXO = '"+cPrefixo+"' "+ CRLF
