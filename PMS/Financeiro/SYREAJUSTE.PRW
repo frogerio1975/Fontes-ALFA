@@ -708,7 +708,7 @@ IF (oTitulos:ColPos == TIT_INDICE) .And. !Empty(oTitulos:aArray[oTitulos:nAt,TIT
 	//lEditCell(@aTitulos,oTitulos,"@E 9,999.9999999",oTitulos:ColPos)
 
 
-	//oTitulos:aArray[oTitulos:nAt,TIT_VALORNEW]:= Round( oTitulos:aArray[oTitulos:nAt,TIT_E1VALOR] * (1 + nIndiceReajuste / 100) , 2 )
+	//oTitulos:aArray[oTitulos:nAt,TIT_VALORNEW]:= Round( oTitulos:aArray[oTitulos:nAt,TIT_VALOR] * (1 + nIndiceReajuste / 100) , 2 )
 	//oTitulos:aArray[oTitulos:nAt,TIT_LOK] := .T.
 
 ElseIF (oTitulos:ColPos == TIT_LOK)
@@ -1547,7 +1547,7 @@ cQuery += " AND E1_XTPPARC IN ('4','5') "
 cQuery += " AND E1_XTIPO IN ('2','3','4','6','8') "
 cQuery += " AND E1_SALDO > 0 "
 cQuery += " AND E1_CLIENTE BETWEEN '" + cClienteDe + "' AND '" + cClienteAte + "'"
-cQuery += " AND E1_EMISSAO BETWEEN <='" + Dtos(dVenctoAte) + "'" 
+cQuery += " AND E1_EMISSAO  <='" + Dtos(dVenctoAte) + "'" 
 cQuery += " AND E1_PORTADO <> '999'"   //Juridico
 cQuery += " AND RIGHT(E1_TIPO,1) <> '-'"
 cQuery += " AND (E1_XDTREAJ BETWEEN '" + Dtos(FirstDay(dDataBase)) + "' AND '" + Dtos(LastDay(dDataBase)) + "')" 
@@ -1680,17 +1680,17 @@ For nX := 1 To Len(aEstorno)
 				Replace E1_XINDICE  With aEstorno[nX,TIT_INDICE]
 				Replace E1_XDIFVAL  With 0
 				Replace E1_XDIFJAN  With 0
-				Replace E1_VALOR    With aEstorno[nX,TIT_E1VALORANT]
+				Replace E1_VALOR    With aEstorno[nX,TIT_VALORANT]
 				Replace E1_XDTREAJ  With Ctod("")
-				Replace E1_SALDO    With aEstorno[nX,TIT_E1VALORANT]
-				Replace E1_VLCRUZ   With aEstorno[nX,TIT_E1VALORANT]
-				Replace E1_BASEIRF  With aEstorno[nX,TIT_E1VALORANT]
-				Replace E1_BASEPIS  With aEstorno[nX,TIT_E1VALORANT]
-				Replace E1_BASECOF  With aEstorno[nX,TIT_E1VALORANT]
-				Replace E1_BASECSL  With aEstorno[nX,TIT_E1VALORANT]
-				Replace E1_BASEINS  With aEstorno[nX,TIT_E1VALORANT]
-				Replace E1_BASEISS  With aEstorno[nX,TIT_E1VALORANT]
-				Replace E1_BASEISS  With aEstorno[nX,TIT_E1VALORANT]
+				Replace E1_SALDO    With aEstorno[nX,TIT_VALORANT]
+				Replace E1_VLCRUZ   With aEstorno[nX,TIT_VALORANT]
+				Replace E1_BASEIRF  With aEstorno[nX,TIT_VALORANT]
+				Replace E1_BASEPIS  With aEstorno[nX,TIT_VALORANT]
+				Replace E1_BASECOF  With aEstorno[nX,TIT_VALORANT]
+				Replace E1_BASECSL  With aEstorno[nX,TIT_VALORANT]
+				Replace E1_BASEINS  With aEstorno[nX,TIT_VALORANT]
+				Replace E1_BASEISS  With aEstorno[nX,TIT_VALORANT]
+				Replace E1_BASEISS  With aEstorno[nX,TIT_VALORANT]
 				Replace E1_NATUREZ  With ''
 		
 				MsUnLock()
@@ -1710,7 +1710,7 @@ For nX := 1 To Len(aEstorno)
 				Aadd( aSE1 ,	{"E1_NATUREZ" 	,aEstorno[nX,TIT_NATUREZA]						,Nil})
 				Aadd( aSE1 ,	{"E1_CLIENTE" 	,SE1->E1_CLIENTE  								,Nil})
 				Aadd( aSE1 ,	{"E1_LOJA"	   	,SE1->E1_LOJA   								,Nil})
-				Aadd( aSE1 ,	{"E1_VALOR"	   	,aEstorno[nX,TIT_E1VALORANT]          			,Nil})
+				Aadd( aSE1 ,	{"E1_VALOR"	   	,aEstorno[nX,TIT_VALORANT]          			,Nil})
 			
 				MSExecAuto({|x,y| FINA040(x,y)},aSE1,4)
 				IF lMsErroAuto
