@@ -400,6 +400,7 @@ Return(.T.)
 Static Function LoadZ17aCols(nOpc)
 Local cQuery  := ""
 Local aAreaZ00:= Z00->(GetArea())
+Local nX:= 0
 
 IF nOpc == 3 //.Or. Len(aColsZ17) == 0
 	//旼컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴�
@@ -999,9 +1000,9 @@ If (cVar == "M->Z01_ESCOPO")
 	oItens:aCols[oItens:nAt,nPEscopo]:= M->Z01_ESCOPO
 ElseIF (cVar == "M->Z01_DIAS")
 	oItens:aCols[oItens:nAt,nPDias] := M->Z01_DIAS
-	oItens:aCols[oItens:nAt,nPHoras]:= M->Z01_DIAS * 10
+	oItens:aCols[oItens:nAt,nPHoras]:= M->Z01_DIAS * GETMV("MV_AFHRDIA",.F. , 10 )
 ElseIF (cVar == "M->Z01_HORAS")
-	oItens:aCols[oItens:nAt,nPDias] := M->Z01_HORAS / 10
+	oItens:aCols[oItens:nAt,nPDias] := M->Z01_HORAS / GETMV("MV_AFHRDIA",.F. , 10 )
 	oItens:aCols[oItens:nAt,nPHoras]:= M->Z01_HORAS
 ElseIF (cVar == "M->Z01_ORDEM")
 	nPos:= aScan(oItens:aCols,{|x| x[nPSeq] == M->Z01_ORDEM})

@@ -20,7 +20,7 @@
 User Function ShowGrfVda()
 
 Local aAlias 		:= GetArea()
-Local bAtuFolder 	:= {|| AtuFolder(@oPanelOpor,@oGetOp,@aHeaderOp,@aColsOp,aStatus,Left(cStatusOp,1),Left(cVendaTp,1),aTermom,cVendCombo,@nlOrdemCols,cProposPsq,cClientePsq,@aAlter,@dDtIni,@dDtFim,@bAtuClientes,cBaseNovos) }
+Local bAtuFolder 	:= {|| AtuFolder(@oPanelOpor,@oGetOp,@aHeaderOp,@aColsOp,aStatus,Left(cStatusOp,1),Left(cVendaTp,1),aTermom,cVendCombo,@nlOrdemCols,cProposPsq,cAditivoPsq,cClientePsq,@aAlter,@dDtIni,@dDtFim,@bAtuClientes,cBaseNovos) }
 Local bAtuClientes 	:= {|| ListaClientes(@oPanelCli,@oGetCli,@aHeaderCli,@aColsCli,cVendCombo,@nlOrdemCols,Left(cVendaTp,1),dDtIni,dDtFim) }
 Local aSize			:= MsAdvSize()
 Local nI			:= 0
@@ -52,6 +52,8 @@ Local oBaseNovos
 Local oTpVenda
 Local oProposPsq
 Local cProposPsq	:= CriaVar("Z02_PROPOS",.F.) 
+Local oAditivoPsq
+Local cAditivoPsq	:= CriaVar("Z02_ADITIV",.F.) 
 Local oClientePsq
 Local cClientePsq	:= CriaVar("Z02_RAZAO",.F.)
 Local oDtIni
@@ -289,7 +291,7 @@ oShowInd:lMaximized	:= .T.
 oPnlMaster:= TPanel():New(0, 0, "", oShowInd, NIL, .T., .F., NIL, NIL, 0,0, .T., .F. )
 oPnlMaster:Align:= CONTROL_ALIGN_ALLCLIENT
 
-oResumo:= TPanel():New(0, 0, '', oPnlMaster, NIL, .T., .F., NIL, NIL, 0,52, .T., .F. )
+oResumo:= TPanel():New(0, 0, '', oPnlMaster, NIL, .T., .F., NIL, NIL, 0,60, .T., .F. )
 oResumo:Align 	:= CONTROL_ALIGN_TOP
 oResumo:nClrPane	:= Rgb(255,255,255)   
 
@@ -301,17 +303,22 @@ oResumo:nClrPane	:= Rgb(255,255,255)
 
 @ 040,005 MSCOMBOBOX oBaseNovos	VAR cBaseNovos	ITEMS aBaseNovos	SIZE 120, 12 OF oResumo PIXEL When .T. ON CHANGE Eval(bAtuFolder)
 
-oProposPsq  := TGet():New(002,130,bSetGet(cProposPsq) ,oResumo,050,012,X3Picture('Z02_PROPOS'),,,,,,,.T.,,,,,,,,,,,,,,,,,"Proposta:",2,,CLR_BLUE,"Digite...")
-oProposPsq:bChange := {|| cClientePsq := CriaVar("Z02_RAZAO",.F.), oProposPsq:Refresh() , Eval(bAtuFolder) } 
+oProposPsq  := TGet():New(002,130,bSetGet(cProposPsq) ,oResumo,050,012,X3Picture('Z02_PROPOS'),,,,,,,.T.,,,,,,,,,,,,,,,,,"Proposta: ",2,,CLR_BLUE,"Digite...")
+oProposPsq:bChange := {|| cClientePsq := CriaVar("Z02_RAZAO",.F.), oProposPsq:Refresh() , /*Eval(bAtuFolder)*/ } 
+
+oAditivoPsq  := TGet():New(002,210,bSetGet(cAditivoPsq) ,oResumo,030,012,"@E 99",,,,,,,.T.,,,,,,,,,,,,,,,,,"Aditivo:",2,,CLR_BLUE,"Digite...")
+oAditivoPsq:bChange := {|| oAditivoPsq:Refresh() , /*Eval(bAtuFolder)*/ } 
 
 oClientePsq := TGet():New(015,130,bSetGet(cClientePsq),oResumo,050,012,X3Picture('Z02_RAZAO') ,,,,,,,.T.,,,,,,,,,,,,,,,,,"ou Cliente:",2,,CLR_BLUE,"Digite...")
-oClientePsq:bChange := {|| cProposPsq := CriaVar("Z02_PROPOS",.F.) , oClientePsq:Refresh() , Eval(bAtuFolder) } 
+oClientePsq:bChange := {|| cProposPsq := CriaVar("Z02_PROPOS",.F.) , oClientePsq:Refresh() , /*Eval(bAtuFolder)*/ } 
 
-oDtIni  		:= TGet():New(030,130,bSetGet(dDtIni) ,oResumo,045,012,X3Picture('Z02_DTAPROV'),,,,,,,.T.,,,,,,,,,,,,,,,,,"Data De: "	,2,,CLR_BLUE,"Digite...")
-oDtIni:bChange := {|| Eval(bAtuFolder) } 
+oDtIni  		:= TGet():New(030,130,bSetGet(dDtIni) ,oResumo,045,012,X3Picture('Z02_DTAPROV'),,,,,,,.T.,,,,,,,,,,,,,,,,,"Data De:   "	,2,,CLR_BLUE,"Digite...")
+//oDtIni:bChange := {|| Eval(bAtuFolder) } 
 
 oDtFim  		:= TGet():New(030,200,bSetGet(dDtFim) ,oResumo,045,012,X3Picture('Z02_DTAPROV'),,,,,,,.T.,,,,,,,,,,,,,,,,,"Até:"		,2,,CLR_BLUE,"Digite...")
-oDtFim:bChange := {|| Eval(bAtuFolder) } 
+//oDtFim:bChange := {|| Eval(bAtuFolder) } 
+
+TButton():New( 045 , 130 , "Pesquisar"	,oResumo,{|| Processa( {|| Eval(bAtuFolder) }, "Pesquisando Oportunidades..." )  }	,130,11,,,.F.,.T.,.F.,,.F.,,,.F. )
 
 oSayTotal		:= TSay():New(002,270,{|| 'Serviço:'}		,oResumo,,oFnt,,,,.T.,CLR_RED,CLR_WHITE,050,11)
 oSaySetup		:= TSay():New(012,270,{|| 'Setup:' }		,oResumo,,oFnt,,,,.T.,CLR_RED,CLR_WHITE,080,11)
@@ -351,7 +358,7 @@ TButton():New( 016 , 510 , "Alterar Lead"	,oResumo,{|| MntPropostas(98,oGetOp,oF
 TBtnBmp2():New( 070 ,1020, 025, 025,"S4WB013N"	,,,,{|| Processa( {|| PreparaDadosGrf(oFolderFilho,cVendCombo,dDtIni,dDtFim,Left(cVendaTp,1)) }, "Preparando Dados para Graficos..." ) },oResumo,"Atualiza Graficos",,.T. )
 TBtnBmp2():New( 070 ,1060, 025, 025,"PEDIDO"	,,,,{|| U_SyDocument( "Z02",'',2,1,@oGetOp) },oResumo,"Documentações da Proposta",,.T. )
 
-Eval(bAtuFolder)
+//Eval(bAtuFolder)
 
 Processa( {|| PreparaDadosGrf(oFolderFilho,cVendCombo,dDtIni,dDtFim,cVendaTp) }, "Preparando Dados para Graficos..." )
 
@@ -359,7 +366,7 @@ ACTIVATE MSDIALOG oShowInd ON INIT ( EnchoiceBar(oShowInd,{|| oShowInd:End() } ,
 
 Return(.T.)
 
-Static Function AtuFolder(oPanelOpor,oGetOp,aHeaderOp,aColsOp,aStatus,cStatus,cVenda,aTermom,cVendCombo,nlOrdemCols,cProposPsq,cClientePsq,aAlter,dDtIni,dDtFim,bAtuClientes,cBaseNovos)
+Static Function AtuFolder(oPanelOpor,oGetOp,aHeaderOp,aColsOp,aStatus,cStatus,cVenda,aTermom,cVendCombo,nlOrdemCols,cProposPsq,cAditivoPsq,cClientePsq,aAlter,dDtIni,dDtFim,bAtuClientes,cBaseNovos)
 
 Local aArea			:= GetArea()
 Local cResto		:= ''
@@ -481,10 +488,13 @@ cQry += " LEFT JOIN SUS010 SUS ON SUS.D_E_L_E_T_ = '' AND Z02.Z02_PROSPE = SUS.U
 cQry += " WHERE Z02.D_E_L_E_T_ = '' AND YEAR(Z02.Z02_DTAPRO) = '" + CValToChar(Year(dDatabase)) + "'"
 cQry += " AND Z02.Z02_TIPO IN ('3','4') "
 TcSqlExec(cQry)
+
+
 //Ajusta o calculo do desconto proporcional do item em relacao ao desconto total
+/*
 cQry := " SELECT *, Z05.R_E_C_N_O_ AS Z05RECNO"
-cQry += " FROM Z02010 Z02 "
-cQry += " INNER JOIN Z05010 Z05 ON Z05.D_E_L_E_T_ = '' AND Z05.Z05_PROPOS = Z02.Z02_PROPOS AND Z05.Z05_ADITIV = Z02.Z02_ADITIV "
+cQry += " FROM Z02010 Z02 (NOLOCK) "
+cQry += " INNER JOIN Z05010 Z05 (NOLOCK) ON Z05.D_E_L_E_T_ = '' AND Z05.Z05_PROPOS = Z02.Z02_PROPOS AND Z05.Z05_ADITIV = Z02.Z02_ADITIV "
 cQry += " WHERE Z02.D_E_L_E_T_ = '' AND Z02.Z02_DSCTOT > 0 AND Z05.Z05_DSCPRO = 0 AND (Z05.Z05_TOTAL > 0 OR Z05.Z05_VLRMES > 0)"
 cQry:= ChangeQuery(cQry)
 
@@ -520,7 +530,7 @@ While !Eof()
 	TMP2->(dbSkip())
 End
 TMP2->(dbCloseArea())
-
+*/
 
 
 //ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
@@ -586,6 +596,10 @@ IF !Empty(cProposPsq)
 
 ElseIF !Empty(cClientePsq)
 	cQuery += " 		Z02.Z02_RAZAO LIKE '%"+Alltrim(cClientePsq)+"%' AND "
+EndIF
+
+IF !Empty(cAditivoPsq)
+	cQuery += " 		Z02.Z02_ADITIV = '"+Alltrim(cAditivoPsq)+"' AND "
 EndIF
 
 cQuery	+= " Z02.D_E_L_E_T_ = ' ' 								AND "

@@ -1,4 +1,8 @@
 {
     "totvsLanguageServer.welcomePage": false,
-    "totvsLanguageServer.editor.linter.includes": "C:\\TOTVS12\\Microsiga\\Protheus\\include"
+    "totvsLanguageServer.editor.linter.includes": "C:\\TOTVS12\\Microsiga\\Protheus\\include",
+    "4gl.formatter": {
+    
+    },
+    "totvsLanguageServer.askCompileResult": false
 }
