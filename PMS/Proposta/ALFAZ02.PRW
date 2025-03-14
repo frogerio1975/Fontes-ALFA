@@ -341,26 +341,26 @@ aRotina := { 	{"Pesquisar","AxPesqui",0,1} 	,;
 
 //術ao permite alterar proposta aprovada.�
  IF !(nOpc == 2 .Or. nOpc == 3 .Or. nOpc == 6 .Or. nOpc == 7 .Or. nOpc == 14) .And. ( Z02->Z02_STATUS $ '5/9' )
-	MsgAlert('N緌 � possivel alterar Propostas Aprovadas. Proposta ser� exibida em modo de Visualiza誽o!')
+	MsgAlert('N�o � possivel alterar Propostas Aprovadas. Proposta ser� exibida em modo de Visualiza誽o!')
 	nOpc := 2
 EndIF
 
 //術ao permite criar aditivo de outro aditivo.�
  IF (nOpc == 7) .And. ( Z02->Z02_ADITIV <> '00' )
-	MsgAlert('Somente � possivel criar aditivo a partir do contrato original. Proposta ser� exibida em modo de Visualiza誽o!')
+	MsgAlert('Somente � possivel criar aditivo a partir do contrato original. Proposta ser� exibida em modo de Visualiza誽o!')
 	nOpc := 2
 EndIF
 
 //袖o permite gerar Aditivo de Proposta APROVADA.�
 IF (nOpc == 7) .And. !( Z02->Z02_STATUS $ '5/9' ) .And. ( Z02->Z02_ADITIV == '00' )
-	MsgAlert('Somente � possivel gerar aditivo de Proposta APROVADA!')
+	MsgAlert('Somente � possivel gerar aditivo de Proposta APROVADA!')
 	aRotina := aClone(aRotBKP)
 	Return(.F.)
 EndIF
 
 //袖o permite excluir propostas com o status de Aberta.�
 IF (nOpc == 5) .And. ( Z02->Z02_STATUS $ '5/9' )
-	MsgAlert('N緌 � possivel excluir Propostas Aprovadas.')
+	MsgAlert('N�o � possivel excluir Propostas Aprovadas.')
 	aRotina := aClone(aRotBKP)
 	Return(.F.)
 EndIF
@@ -1040,13 +1040,13 @@ IF lServico	// Servicos
 
 Else
 
-	@ nLin		,005 SAY "Pre蔞 Tabela" OF oVlrEscopo FONT oFntP COLOR CLR_BLACK 	Pixel SIZE 50,15
+	@ nLin		,005 SAY "Pre�o Tabela" OF oVlrEscopo FONT oFntP COLOR CLR_BLACK 	Pixel SIZE 50,15
 	@ nLin		,070 GET oTotTabela		VAR	nTotTabela	PICTURE '@E 9,999,999.99' OF oVlrEscopo FONT oFntP COLOR CLR_BLACK 	Pixel SIZE 070,11 WHEN .F.
 
 EndIF
 
 @ nLin+13	,005 SAY "Custo"			OF oVlrEscopo FONT oFntP COLOR CLR_RED 		Pixel SIZE 60,11
-@ nLin+26	,005 SAY "Comiss髊s"		OF oVlrEscopo FONT oFntP COLOR CLR_RED 		Pixel SIZE 60,11
+@ nLin+26	,005 SAY "Comiss�es"		OF oVlrEscopo FONT oFntP COLOR CLR_RED 		Pixel SIZE 60,11
 @ nLin+38	,005 SAY "Desc.Itens($ - %)"OF oVlrEscopo FONT oFntP COLOR CLR_RED		Pixel SIZE 60,11
 @ nLin+50	,005 SAY "Desc.Total($ - %)"OF oVlrEscopo FONT oFntP COLOR CLR_RED		Pixel SIZE 60,11
 @ nLin+62	,005 SAY "Margem($ - %)"	OF oVlrEscopo FONT oFntP COLOR CLR_BLUE		Pixel SIZE 60,11
@@ -1068,7 +1068,7 @@ EndIF
 //蛉onta o resumo financeiro.�
 //斂闡闡闡闡闡闡闡闡闡闡闡闡囝
 oFldPagto:= Nil
-oFldPagto:=TFolder():New(1,1,{"Condi誽o de Pagamento","Comissoes"},{"HEADER","HEADER","HEADER"},oRodape,,,,.T.,.F.,1,1)
+oFldPagto:=TFolder():New(1,1,{"Condi��o de Pagamento","Comissoes"},{"HEADER","HEADER","HEADER"},oRodape,,,,.T.,.F.,1,1)
 oFldPagto:Align := CONTROL_ALIGN_ALLCLIENT
 
 nStyle:= GD_INSERT+GD_UPDATE+GD_DELETE
@@ -1155,6 +1155,7 @@ Local cID           := ""
 Local cDiaFixo		:= '05'
 Local lPostergar 	:= .F.
 Local lRet			:= .T.
+Local cMesPg        := "1"  //1=Pagamento dentros do Mes de Faturamento, 2= Pagamento Mes Seguinte
 
 DEFAULT lComis      := .T.
 DEFAULT cCampo      := IIf(Empty(ReadVar()),"M->Z05_MODULO",ReadVar())
@@ -1170,6 +1171,15 @@ EndIF
 //Valida os campos do Acols
 If (nOpc <> 2) .And. (nOpc <> 5) .And. !U_VLDFIELD(cCampo,oBrw)
 	Return(.F.)
+EndIf
+
+//Verifica a data padrao de pagamento do cliente
+If !Empty(M->Z02_CLIENTE)
+	SA1->(dbSetOrder(1))
+	If SA1->(dbSeek(xFilial("SA1")+M->Z02_CLIENTE+M->Z02_LOJA))
+		cDiaFixo:= SA1->A1_XDIAPG
+		cMesPg  := SA1->A1_XMESPG
+	EndIf	
 EndIf
 
 //Realiza os calculos
@@ -1287,13 +1297,26 @@ If (nOpc <> 2) .And. (nOpc <> 5)
 
 	IF lServico	// Servicos
 
+		nMesAtual	:= Month(dDataBase)
+		nAno		:= Year(dDataBase)
 		nDif := nValorTotal
 		
 		For nI:= 1 To Len(aColsZ04)
+
+			nMesAtual++
+			IF nMesAtual > 12
+				nMesAtual := 1
+				nAno += 1
+			EndIF
+					
+			dVencimento := DataValida( Ctod( cDiaFixo + '/' + StrZero(nMesAtual,2) + '/' + StrZero(nAno,4) ) , lPostergar )
+
 			aColsZ04[nI,nPVlParcela] := Round( nValorTotal / Len(aColsZ04) , 2 )
 			aColsZ04[nI,nPVlrOri]    := Round( (nValorTotal + nDscTotal) / Len(aColsZ04) , 2 )
 			aColsZ04[nI,nPDscPar]    := aColsZ04[nI,nPVlrOri] - aColsZ04[nI,nPVlParcela]
+			aColsZ04[nI,nPDataPgto]  := dVencimento
 			nDif-= aColsZ04[nI,nPVlParcela]
+
 		Next nI
 		
 		//矬闡闡闡闡闡闡闡闡闡闡闡闡闡闡闡闡闡闡闡闡闡闡闡闡闡闡闡闡闡闡闡闡闡闡闡闡闡闡闡闡闡闡闡闡闡闡醴
@@ -1327,6 +1350,7 @@ If (nOpc <> 2) .And. (nOpc <> 5)
 			nAno += 1
 		EndIF
 				
+	
 		dVencimento := DataValida( Ctod( cDiaFixo + '/' + StrZero(nMesAtual,2) + '/' + StrZero(nAno,4) ) , lPostergar )
 
 		aColsZ04[1,nModPar] 	:= '5' // Mensal Service Desk
@@ -1343,7 +1367,7 @@ If (nOpc <> 2) .And. (nOpc <> 5)
 		aColsZ04[2,nPVlParcela]	:= Round(((nTotProd * nFatorDsc)/ aColsZ04[2,nQtParcelas]) / nImpostos,2)
 		aColsZ04[2,nTotal]		:= Round(aColsZ04[2,nPVlParcela] * aColsZ04[2,nQtParcelas],2)
 		aColsZ04[2,nPDataPgto] 	:= dVencimento
-		aColsZ04[2,nHist] 		:= 'Servi蔞s Adicionais ao Contrato de Service Desk'
+		aColsZ04[2,nHist] 		:= 'Servi�os Adicionais ao Contrato de Service Desk'
 		aColsZ04[2,nHist] 		:= aColsZ04[2,nHist] + Space( Len(Z04->Z04_HIST) - Len(aColsZ04[2,nHist]) ) 
 		aColsZ04[2,nPVlrOri] 	:= Round((nTotProd / aColsZ04[2,nQtParcelas])  / nImpostos,2)
 		aColsZ04[2,nPDscPar] 	:= aColsZ04[2,nPVlrOri] - aColsZ04[2,nPVlParcela]
@@ -1991,6 +2015,7 @@ IF nOpc != 2 // Visualizar
 		MsgAlert('Informe ao menos 1 contato valido.')
 		Return(.F.)
 	EndIf
+	
 	//VALIDA SE N鬃 EXISTE PROPOSTA ABERTA COM O MESMO TIPO
 	//OBRIGAR O VENDEDOR A FAZER UM ADITIVO DE PROPOSTA
 	IF  INCLUI .AND. !Empty(M->Z02_CLIENT)  .AND. M->Z02_ADITIV == '00' .and. !M->Z02_TIPO $ "0,1,2,8"
@@ -2082,13 +2107,13 @@ EndIF
 For nI:= 1 To Len(oParcelas:aCols)
 	If (nValParcela == 0) .Or. (Empty(oParcelas:aCols[nI,nPData]))
 		If lShowMsg
-			Aviso("Atencao","Parcela sem data de pagamento! Favor informar uma data de pagamento v嫮ida.",{"Ok"})
+			Aviso("Atencao","Parcela sem data de pagamento! Favor informar uma data de pagamento v�liida.",{"Ok"})
 		EndIf
 
 		Return(.F.)
 	ElseIf 	(oParcelas:aCols[nI,nPData] < dDatabase)
 		If lShowMsg
-			Aviso("Atencao","Parcela com data de pagamento inv嫮ida! Favor informar uma data de pagamento maior que a data atual."+;
+			Aviso("Atencao","Parcela com data de pagamento inv�lida! Favor informar uma data de pagamento maior que a data atual."+;
 					Chr(10)+Chr(13)+"Dt.Parcela:" + Dtoc(oParcelas:aCols[nI,nPData]) +;
 					Chr(10)+Chr(13)+"Data Atual:" + Dtoc(dDatabase),{"Ok"})
 		EndIf
@@ -3749,6 +3774,17 @@ Local nAno			:= 0
 Local nTotal	  	:= 0
 Local lPostergar 	:= .F.
 Local cDiaFixo		:= '05'
+Local cMesPg        := ""
+
+
+//Verifica a data padrao de pagamento do cliente
+If !Empty(M->Z02_CLIENTE)
+	SA1->(dbSetOrder(1))
+	If SA1->(dbSeek(xFilial("SA1")+M->Z02_CLIENTE+M->Z02_LOJA))
+		cDiaFixo:= SA1->A1_XDIAPG
+		cMesPg  := SA1->A1_XMESPG
+	EndIf	
+EndIf
 
 IF !(INCLUI .Or. ALTERA)
 	Return(.T.)
