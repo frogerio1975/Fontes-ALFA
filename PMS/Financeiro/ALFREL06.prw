@@ -80,7 +80,7 @@ Private cModelo  := "1"
 Private dPerIni  := CriaVar("E1_EMISSAO",.F.)
 Private dPerFim  := CriaVar("E1_EMISSAO",.F.)
 Private aPeriodo := {}
-
+ 
 AADD( aBoxParam, {2,"Empresa"         , cEmpFat   , aEmpFat , 50, ".F.", .T.} )
 AADD( aBoxParam, {2,"Visão Por"       , cVisao    , aVisao  , 50, ".F.", .T.} )
 AADD( aBoxParam, {2,"Tipo Relatório"  , cTipoRel  , aTipoRel, 50, ".F.", .T.} )
